@@ -44,6 +44,8 @@ export interface ProductDetail extends Product {
 export interface HistoryPoint {
   observation_id?: number;
   gap_before?: boolean;
+  evidence_reference?: string | null;
+  import_id?: string | null;
   evidence_kind?: "recorded" | "page_check" | "historical_import";
   variant_snapshot?: Record<string, string | number | boolean> | null;
   context_snapshot?: {
@@ -61,6 +63,9 @@ export interface HistoryPoint {
 }
 
 export interface HistorySeries {
+  series_id?: string;
+  source_id?: string;
+  price_type?: string;
   channel: string;
   source_name: string;
   product_url: string | null;
@@ -121,6 +126,11 @@ export interface HistoryCoverage {
     first_observed_at: string | null;
     latest_observed_at: string | null;
     imported_observations: number;
+    history_sources?: {
+      source_id: string;
+      name: string;
+      observations: number;
+    }[];
     collection_status:
       | "queued"
       | "running"
@@ -138,7 +148,7 @@ export interface HistoryCoverage {
   }[];
 }
 
-const base = (
+export const base = (
   import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000/api/v1"
 ).replace(/\/$/, "");
 

@@ -2220,3 +2220,180 @@ svg {
     gap: 10px;
   }
 }
+
+.import-workspace {
+  max-width: 1050px;
+  padding-bottom: 60px;
+}
+.import-intro {
+  margin: 44px 0 28px;
+}
+.import-intro .eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.import-intro h1 {
+  font-size: clamp(28px, 4vw, 42px);
+  letter-spacing: -1px;
+  margin: 16px 0 10px;
+}
+.import-intro p,
+.import-panel p {
+  color: #657167;
+  line-height: 1.65;
+}
+.import-panel {
+  padding: 28px;
+  margin: 18px 0;
+}
+.import-panel h2 {
+  font-size: 19px;
+  margin: 0 0 10px;
+}
+.import-panel p {
+  font-size: 14px;
+}
+.import-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 16px 0;
+  min-width: 0;
+}
+.import-field input,
+.import-field select,
+.import-field textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 12px;
+  color: #243a2c;
+  border: 1px solid #dbe2d8;
+  border-radius: 8px;
+  background: #fff;
+  font: inherit;
+}
+.import-field textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+.import-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.65;
+  margin: 16px 0;
+}
+.import-checkbox input {
+  margin-top: 4px;
+}
+.import-search {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.import-search .import-field {
+  flex: 1;
+}
+.import-search .button {
+  margin-top: 18px;
+}
+.import-mapping {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px 20px;
+  font-size: 13px;
+  padding: 18px;
+  background: #f4f7f0;
+  border-radius: 10px;
+}
+.import-mapping dt {
+  color: #657167;
+}
+.import-mapping dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.import-session {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+.source-registration {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e4e9e0;
+}
+.source-registration summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #155c45;
+}
+.import-reference {
+  overflow-wrap: anywhere;
+}
+.import-success {
+  margin-top: 20px;
+  background: #edf7eb;
+  border-radius: 12px;
+  padding: 20px;
+}
+.import-success a {
+  display: inline-block;
+  margin-right: 20px;
+}
+.import-panel .observed-date {
+  white-space: normal;
+  max-width: 340px;
+  overflow-wrap: anywhere;
+}
+.import-audit {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.import-audit li {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 15px 0;
+  border-bottom: 1px solid #e4e9e0;
+}
+.import-audit span,
+.import-audit details {
+  color: #657167;
+  font-size: 12px;
+}
+.import-audit code {
+  display: block;
+  padding-top: 8px;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 600px) {
+  .import-panel {
+    padding: 18px;
+  }
+  .import-search {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+  }
+  .import-search .button {
+    margin: 0 0 16px;
+  }
+  .import-mapping {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+  .import-mapping dd {
+    margin-bottom: 8px;
+  }
+  .import-workspace .header-inner {
+    gap: 12px;
+  }
+}

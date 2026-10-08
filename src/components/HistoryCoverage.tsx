@@ -45,8 +45,10 @@ export default function HistoryCoverage({
                     {store.channel === "offline" ? "Offline" : "Online"}
                   </strong>
                   <p>
-                    {store.observations} observations across{" "}
-                    {store.observed_days} observed days
+                    {store.observations}{" "}
+                    {store.observations === 1 ? "observation" : "observations"}{" "}
+                    across {store.observed_days} observed{" "}
+                    {store.observed_days === 1 ? "day" : "days"}
                   </p>
                   <dl>
                     <dt>First evidence</dt>
@@ -85,6 +87,14 @@ export default function HistoryCoverage({
                     </p>
                   )}
                   <small>{store.source_name}</small>
+                  {store.history_sources && store.imported_observations > 0 && (
+                    <p>
+                      History sources:{" "}
+                      {store.history_sources
+                        .map((source) => source.name)
+                        .join(" · ")}
+                    </p>
+                  )}
                 </article>
               ))}
             </div>

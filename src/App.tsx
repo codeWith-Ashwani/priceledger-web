@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowDownRight,
@@ -18,7 +18,28 @@ import Comparison from "./components/Comparison";
 import MethodDialog from "./components/MethodDialog";
 import WatchDialog from "./components/WatchDialog";
 
+const HistoryImportAdmin = lazy(
+  () => import("./components/HistoryImportAdmin"),
+);
+
 export default function App() {
+  if (new URLSearchParams(location.search).get("admin") === "imports") {
+    return (
+      <Suspense
+        fallback={
+          <main className="page" role="status">
+            Loading import workspace…
+          </main>
+        }
+      >
+        <HistoryImportAdmin />
+      </Suspense>
+    );
+  }
+  return <ConsumerApp />;
+}
+
+function ConsumerApp() {
   const queryClient = useQueryClient();
   const [selectedId, setSelectedId] = useState(
     () => new URLSearchParams(location.search).get("product") ?? "",

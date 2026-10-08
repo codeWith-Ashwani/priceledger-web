@@ -87,6 +87,9 @@ export default function HistoryLedger({ history }: { history: PriceHistory }) {
                         {row.context_snapshot.region}
                       </p>
                     )}
+                    {row.evidence_reference && (
+                      <p>Evidence reference: {row.evidence_reference}</p>
+                    )}
                   </details>
                 </td>
                 <td>{rupees(row.total_paise)}</td>

@@ -239,6 +239,7 @@ test("verified-match UI contract shows two retailers and their past price rows",
     const series = data.series[0];
     data.series.push({
       ...series,
+      series_id: "contract-series",
       offer_id: "contract-offer",
       retailer_id: "contract",
       name: "Contract store",
@@ -292,8 +293,10 @@ test("shows genuine history coverage and expandable price evidence", async ({
     panel.getByRole("heading", { name: "How much history do we have?" }),
   ).toBeVisible();
   await expect(panel).toContainText("Flipkart");
-  await expect(panel).toContainText("observed days");
-  await expect(panel).toContainText("no historical provider is connected");
+  await expect(panel).toContainText(/observed days?/);
+  await expect(panel).toContainText(
+    "no automatic historical provider is connected",
+  );
   await expect(panel).toContainText("Next eligible check");
   const evidence = page.locator(".price-evidence").first();
   await evidence.locator("summary").click();

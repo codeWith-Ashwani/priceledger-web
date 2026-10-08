@@ -17,6 +17,7 @@ export default function HistoryChart({ history }: { history: PriceHistory }) {
   const id = useId().replace(/:/g, "");
   const plottedSeries = history.series.map((series) => ({
     ...series,
+    series_id: series.series_id ?? series.offer_id,
     points: series.points.map((point) => ({
       ...point,
       total_paise:
@@ -24,7 +25,7 @@ export default function HistoryChart({ history }: { history: PriceHistory }) {
     })),
   }));
   const visible = plottedSeries.filter(
-    (series) => !hidden.includes(series.offer_id),
+    (series) => !hidden.includes(series.series_id),
   );
   const dates = useMemo(
     () =>
@@ -89,23 +90,29 @@ export default function HistoryChart({ history }: { history: PriceHistory }) {
   return (
     <>
       <div className="chart-legend">
-        {history.series.map((series) => (
+        {plottedSeries.map((series) => (
           <button
-            key={series.offer_id}
+            key={series.series_id}
             className="legend-button"
-            aria-pressed={!hidden.includes(series.offer_id)}
+            aria-pressed={!hidden.includes(series.series_id)}
+            title={series.source_name}
             style={{ "--series": series.color } as CSSProperties}
-            disabled={visible.length === 1 && !hidden.includes(series.offer_id)}
+            disabled={
+              visible.length === 1 && !hidden.includes(series.series_id)
+            }
             onClick={() =>
               setHidden((previous) =>
-                previous.includes(series.offer_id)
-                  ? previous.filter((value) => value !== series.offer_id)
-                  : [...previous, series.offer_id],
+                previous.includes(series.series_id)
+                  ? previous.filter((value) => value !== series.series_id)
+                  : [...previous, series.series_id],
               )
             }
           >
             <span />
             {series.name}
+            {history.series.filter(
+              (other) => other.offer_id === series.offer_id,
+            ).length > 1 && ` · ${series.source_name}`}
           </button>
         ))}
         <span className="chart-unit">
@@ -185,7 +192,7 @@ export default function HistoryChart({ history }: { history: PriceHistory }) {
           {visible.map((series, index) =>
             stepSegments(series.points, x, y, history.max_gap_hours).map(
               (segment, segmentIndex) => (
-                <g key={`${series.offer_id}:${segmentIndex}`}>
+                <g key={`${series.series_id}:${segmentIndex}`}>
                   {index === 0 && (
                     <path
                       d={`${segment.path}L${segment.lastX},${H - BOTTOM}L${segment.firstX},${H - BOTTOM}Z`}
@@ -208,7 +215,7 @@ export default function HistoryChart({ history }: { history: PriceHistory }) {
               .filter((point) => point.total_paise !== null)
               .map((point) => (
                 <circle
-                  key={`${series.offer_id}:${point.at}`}
+                  key={`${series.series_id}:${point.observation_id ?? point.at}`}
                   cx={dates.length === 1 ? W / 2 : x(Date.parse(point.at))}
                   cy={y(point.total_paise!)}
                   r={dates.length === 1 ? 5 : 2.3}
@@ -242,7 +249,7 @@ export default function HistoryChart({ history }: { history: PriceHistory }) {
                 (value) => Date.parse(value.at) === selectedTime,
               );
               return (
-                <div key={series.offer_id}>
+                <div key={series.series_id}>
                   <span style={{ color: series.color }}>{series.name}</span>
                   <b>{point ? rupees(point.total_paise) : "No observation"}</b>
                 </div>
