@@ -282,3 +282,54 @@ test("verified-match UI contract shows two retailers and their past price rows",
   );
   await expect(page.locator(".best-price strong")).toHaveText("₹35,000");
 });
+
+test("shows genuine history coverage and expandable price evidence", async ({
+  page,
+}) => {
+  await page.goto(productRoute);
+  const panel = page.getByRole("region", { name: "History coverage" });
+  await expect(
+    panel.getByRole("heading", { name: "How much history do we have?" }),
+  ).toBeVisible();
+  await expect(panel).toContainText("Flipkart");
+  await expect(panel).toContainText("observed days");
+  await expect(panel).toContainText("no historical provider is connected");
+  await expect(panel).toContainText("Next eligible check");
+  const evidence = page.locator(".price-evidence").first();
+  await evidence.locator("summary").click();
+  await expect(evidence).toContainText(/variant was not saved|sku:/);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+});
+
+test("failed collection keeps evidence separate from the last recorded price", async ({
+  page,
+}) => {
+  // Exercise a failure UI contract using the real coverage response; no database prices are inserted.
+  await page.route("**/products/*/coverage", async (route) => {
+    const response = await route.fetch();
+    const data = await response.json();
+    data.stores = data.stores.map((store: Record<string, unknown>) => ({
+      ...store,
+      collection_status: "queued",
+      consecutive_failures: 1,
+      last_check: {
+        outcome: "failure",
+        error_code: "connection_failed",
+        at: new Date().toISOString(),
+      },
+    }));
+    await route.fulfill({ response, json: data });
+  });
+  await page.goto(productRoute);
+  await expect(page.locator(".coverage-failure")).toContainText(
+    "failed checks add no price",
+  );
+  await expect(page.locator(".offers-panel .offers-table")).toContainText(
+    "Flipkart product page",
+  );
+  expect(await page.locator(".history-svg circle").count()).toBeGreaterThan(0);
+});

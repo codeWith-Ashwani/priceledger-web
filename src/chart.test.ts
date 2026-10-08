@@ -39,6 +39,16 @@ describe("history evidence", () => {
       ),
     ).toHaveLength(1);
   });
+  it("breaks at a failed check even within the normal collection interval", () => {
+    const result = stepSegments(
+      [point(1, 100), { ...point(2, 100), gap_before: true }],
+      (x) => x,
+      (y) => y,
+      48,
+    );
+    expect(result).toHaveLength(2);
+    expect(result.every((segment) => !segment.path.includes("H"))).toBe(true);
+  });
 });
 
 describe("target price input", () => {

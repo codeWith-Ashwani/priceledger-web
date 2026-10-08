@@ -26,6 +26,7 @@ export function stepSegments(
       py = y(point.total_paise);
     if (
       !segment ||
+      point.gap_before ||
       previousTime === undefined ||
       timestamp - previousTime > gapHours * 3_600_000
     ) {

@@ -42,6 +42,16 @@ export interface ProductDetail extends Product {
 }
 
 export interface HistoryPoint {
+  observation_id?: number;
+  gap_before?: boolean;
+  evidence_kind?: "recorded" | "page_check" | "historical_import";
+  variant_snapshot?: Record<string, string | number | boolean> | null;
+  context_snapshot?: {
+    seller: string;
+    condition: string;
+    region: string;
+    availability: string;
+  } | null;
   price_paise?: number | null;
   at: string;
   total_paise: number | null;
@@ -72,7 +82,10 @@ export interface PriceHistory {
 
 export interface Assessment {
   verdict:
-    "insufficient_history" | "below_usual" | "above_usual" | "near_usual";
+    | "insufficient_history"
+    | "below_usual"
+    | "above_usual"
+    | "near_usual";
   current_paise: number | null;
   baseline_paise: number | null;
   savings_percent: number | null;
@@ -91,6 +104,38 @@ export interface Assessment {
   retailer_name: string | null;
   is_demo: boolean;
   advertised_discount_percent: number | null;
+}
+
+export interface HistoryCoverage {
+  product_id: string;
+  timezone: string;
+  launch_history_verified: boolean;
+  history_note: string;
+  stores: {
+    offer_id: string;
+    retailer_name: string;
+    source_name: string;
+    channel: string;
+    observations: number;
+    observed_days: number;
+    first_observed_at: string | null;
+    latest_observed_at: string | null;
+    imported_observations: number;
+    collection_status:
+      | "queued"
+      | "running"
+      | "paused"
+      | "not_scheduled"
+      | "awaiting_retry";
+    next_eligible_check_at: string | null;
+    consecutive_failures: number;
+    last_error_code: string | null;
+    last_check: {
+      outcome: string;
+      error_code: string | null;
+      at: string;
+    } | null;
+  }[];
 }
 
 const base = (
@@ -208,4 +253,9 @@ export const api = {
     ),
   assessment: (id: string, signal?: AbortSignal) =>
     get<Assessment>(`/products/${encodeURIComponent(id)}/assessment`, signal),
+  coverage: (id: string, signal?: AbortSignal) =>
+    get<HistoryCoverage>(
+      `/products/${encodeURIComponent(id)}/coverage`,
+      signal,
+    ),
 };

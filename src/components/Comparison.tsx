@@ -16,6 +16,7 @@ import { rupees, shortDate, titleCase } from "../format";
 import ProductImage from "./ProductImage";
 import HistoryChart from "./HistoryChart";
 import HistoryLedger from "./HistoryLedger";
+import HistoryCoverage from "./HistoryCoverage";
 
 const labels = {
   below_usual: "Below the usual price",
@@ -47,6 +48,11 @@ export default function Comparison({
     queryKey: ["assessment", productId],
     queryFn: ({ signal }) => api.assessment(productId, signal),
   });
+  const coverage = useQuery({
+    queryKey: ["coverage", productId],
+    queryFn: ({ signal }) => api.coverage(productId, signal),
+    refetchInterval: 60_000,
+  });
   const comparison = useQuery({
     queryKey: ["comparison-scan", productId],
     queryFn: ({ signal }) => api.comparison(productId, signal),
@@ -59,6 +65,7 @@ export default function Comparison({
     void queryClient.invalidateQueries({ queryKey: ["product", productId] });
     void queryClient.invalidateQueries({ queryKey: ["history", productId] });
     void queryClient.invalidateQueries({ queryKey: ["assessment", productId] });
+    void queryClient.invalidateQueries({ queryKey: ["coverage", productId] });
   }, [comparison.data, productId, queryClient]);
   const product = detail.data,
     assessment = analysis.data;
@@ -427,6 +434,7 @@ export default function Comparison({
                 )}
               </aside>
             </div>
+            <HistoryCoverage query={coverage} />
             {history.data && (
               <HistoryLedger key={productId} history={history.data} />
             )}

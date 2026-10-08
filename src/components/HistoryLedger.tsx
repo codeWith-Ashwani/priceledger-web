@@ -37,7 +37,9 @@ export default function HistoryLedger({ history }: { history: PriceHistory }) {
           </thead>
           <tbody>
             {rows.slice(offset, offset + 20).map((row) => (
-              <tr key={`${row.series.offer_id}:${row.at}`}>
+              <tr
+                key={row.observation_id ?? `${row.series.offer_id}:${row.at}`}
+              >
                 <td>
                   {new Date(row.at).toLocaleString("en-IN", {
                     timeZone: "Asia/Kolkata",
@@ -59,6 +61,33 @@ export default function HistoryLedger({ history }: { history: PriceHistory }) {
                       Not confirmed available
                     </small>
                   )}
+                  <small className="observed-date">
+                    {row.evidence_kind === "page_check"
+                      ? "Retailer page check"
+                      : row.evidence_kind === "historical_import"
+                        ? "Historical import"
+                        : "Recorded evidence"}
+                  </small>
+                  <details className="price-evidence">
+                    <summary>Price evidence</summary>
+                    <p>
+                      {row.variant_snapshot
+                        ? Object.entries(row.variant_snapshot)
+                            .map(
+                              ([key, value]) =>
+                                `${key.replaceAll("_", " ")}: ${value}`,
+                            )
+                            .join(" · ")
+                        : "The variant was not saved with this older observation."}
+                    </p>
+                    {row.context_snapshot && (
+                      <p>
+                        {row.context_snapshot.seller} ·{" "}
+                        {row.context_snapshot.condition} ·{" "}
+                        {row.context_snapshot.region}
+                      </p>
+                    )}
+                  </details>
                 </td>
                 <td>{rupees(row.total_paise)}</td>
                 <td>
