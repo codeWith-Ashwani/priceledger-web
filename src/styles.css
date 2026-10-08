@@ -2152,17 +2152,71 @@ svg {
   display: block;
 }
 
-.coverage-panel { margin: 22px 0; padding: 26px; }
-.coverage-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 18px; }
-.coverage-grid article { padding: 18px; border: 1px solid var(--border, #e2e8df); border-radius: 12px; min-width: 0; }
-.coverage-grid p, .coverage-note { color: var(--muted, #647266); font-size: 13px; line-height: 1.6; }
-.coverage-grid dl { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; font-size: 12px; }
-.coverage-grid dt { color: var(--muted, #647266); }
-.coverage-grid dd { margin: 0; overflow-wrap: anywhere; }
-.coverage-grid small { color: var(--muted, #647266); }
-.coverage-failure { padding: 12px; background: #fff4e5; border-radius: 8px; }
-.coverage-note { margin-bottom: 0; }
-.price-evidence { max-width: 280px; font-size: 12px; margin-top: 5px; }
-.price-evidence summary { color: #155c45; cursor: pointer; }
-.price-evidence p { white-space: normal; overflow-wrap: anywhere; }
-@media (max-width: 600px) { .coverage-panel { padding: 18px; } .coverage-panel .panel-heading { align-items: flex-start; flex-direction: column; gap: 10px; } }
+.coverage-panel {
+  margin: 22px 0;
+  padding: 26px;
+}
+.coverage-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 18px;
+}
+.coverage-grid article {
+  padding: 18px;
+  border: 1px solid var(--border, #e2e8df);
+  border-radius: 12px;
+  min-width: 0;
+}
+.coverage-grid p,
+.coverage-note {
+  color: var(--muted, #647266);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.coverage-grid dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px 14px;
+  font-size: 12px;
+}
+.coverage-grid dt {
+  color: var(--muted, #647266);
+}
+.coverage-grid dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.coverage-grid small {
+  color: var(--muted, #647266);
+}
+.coverage-failure {
+  padding: 12px;
+  background: #fff4e5;
+  border-radius: 8px;
+}
+.coverage-note {
+  margin-bottom: 0;
+}
+.price-evidence {
+  max-width: 280px;
+  font-size: 12px;
+  margin-top: 5px;
+}
+.price-evidence summary {
+  color: #155c45;
+  cursor: pointer;
+}
+.price-evidence p {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 600px) {
+  .coverage-panel {
+    padding: 18px;
+  }
+  .coverage-panel .panel-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+}
