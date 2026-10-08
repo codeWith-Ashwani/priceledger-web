@@ -60,7 +60,7 @@ export default function HistoryChart({ history }: { history: PriceHistory }) {
       </div>
     );
   const start = dates[0],
-    end = Math.max(dates[dates.length - 1], start + 86_400_000);
+    end = Math.max(dates[dates.length - 1], start + 1000);
   const low = Math.min(...allValues),
     high = Math.max(...allValues);
   const pad = Math.max((high - low) * 0.18, high * 0.025, 100);
@@ -174,8 +174,9 @@ export default function HistoryChart({ history }: { history: PriceHistory }) {
                 className="axis-label"
               >
                 {new Date(timestamp).toLocaleDateString("en-IN", {
-                  day: "numeric",
-                  month: "short",
+                  ...(end - start < 86_400_000 && dates.length > 1
+                    ? { hour: "2-digit" as const, minute: "2-digit" as const }
+                    : { day: "numeric" as const, month: "short" as const }),
                   timeZone: "Asia/Kolkata",
                 })}
               </text>

@@ -2043,3 +2043,111 @@ svg {
     max-height: 150px;
   }
 }
+
+.cross-store-panel {
+  margin: 24px 0;
+}
+.cross-store-status {
+  padding: 0 24px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 14px;
+  color: var(--muted);
+}
+.cross-store-result {
+  padding: 18px 24px;
+  border-top: 1px solid var(--border);
+}
+.cross-store-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 14px;
+}
+.cross-store-heading > a {
+  margin-left: auto;
+  font-size: 12px;
+}
+.cross-store-result > p,
+.cross-store-footnote {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.cross-store-footnote {
+  padding: 0 24px 16px;
+}
+.match-status {
+  font-size: 11px;
+  padding: 4px 9px;
+  border-radius: 20px;
+  background: var(--soft);
+}
+.match-status.verified {
+  color: var(--green);
+}
+.match-status.review {
+  color: #866229;
+  background: #fff5df;
+}
+.possible-match {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 14px;
+  background: var(--soft);
+  border-radius: 10px;
+  margin-top: 10px;
+}
+.possible-match a {
+  font-size: 13px;
+  font-weight: 600;
+}
+.possible-match p,
+.possible-match small {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.possible-match > div:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 120px;
+}
+.ledger-panel {
+  margin: 24px 0;
+}
+@media (max-width: 640px) {
+  .cross-store-result {
+    padding: 16px;
+  }
+  .cross-store-heading > a {
+    margin-left: 0;
+  }
+  .possible-match {
+    flex-direction: column;
+  }
+  .cross-store-panel .panel-heading {
+    align-items: flex-start;
+  }
+  .cross-store-panel .panel-heading > .text-button {
+    font-size: 11px;
+    white-space: normal;
+    max-width: 90px;
+  }
+  .ledger-panel .panel-heading {
+    align-items: flex-start;
+  }
+}
+
+.candidate-history {
+  display: block;
+  margin: 8px 0;
+  font-size: 12px;
+}
+.possible-match > div:first-child > small {
+  display: block;
+}

@@ -35,12 +35,18 @@ test("looks up the user's actual link with dated Flipkart evidence", async ({
   await expect(page.locator(".product-description h2")).toHaveText(
     "Nothing Phone (4a) (Blue, 128 GB)",
   );
-  await expect(page.locator(".offers-table tbody tr")).toHaveCount(1);
-  await expect(page.locator(".offers-table")).toContainText("Online");
-  await expect(page.locator(".offers-table")).toContainText(
+  await expect(
+    page.locator(".offers-panel .offers-table tbody tr"),
+  ).toHaveCount(1);
+  await expect(page.locator(".offers-panel .offers-table")).toContainText(
+    "Online",
+  );
+  await expect(page.locator(".offers-panel .offers-table")).toContainText(
     "Flipkart product page",
   );
-  await expect(page.locator(".observed-date")).toContainText("IST");
+  await expect(page.locator(".offers-panel .observed-date")).toContainText(
+    "IST",
+  );
   await expect(page.locator(".history-svg")).toBeVisible();
   expect(
     await page.locator(".history-svg circle").count(),
@@ -67,6 +73,12 @@ test("looks up the user's actual link with dated Flipkart evidence", async ({
   const image = await page.locator(".real-product-image img").boundingBox();
   const container = await page.locator(".real-product-image").boundingBox();
   expect(image!.height).toBeLessThanOrEqual(container!.height);
+  await expect(page.locator(".cross-store-result")).toHaveCount(2, {
+    timeout: 45000,
+  });
+  await expect(
+    page.getByRole("heading", { name: "Where that price was recorded" }),
+  ).toBeVisible();
   await page.screenshot({
     path: info.outputPath("live-product.png"),
     fullPage: true,
@@ -79,10 +91,10 @@ test("rejects unsupported links without showing a fake product", async ({
   await page.goto("/");
   await page
     .getByRole("textbox", { name: "Product link or brand and model" })
-    .fill("https://example.com/product");
+    .fill("http://127.0.0.1/private");
   await page.getByRole("button", { name: "Find prices" }).click();
   await expect(page.getByRole("alert")).toContainText(
-    "Use an Amazon India, Flipkart or Meesho product link.",
+    "Use a public ecommerce product link",
   );
   await expect(page.locator("#comparison")).toHaveCount(0);
 });
@@ -195,4 +207,78 @@ test("saves and removes a real product target", async ({ page }) => {
   await expect(page.locator(".target-card")).toContainText("₹35,000");
   await page.getByRole("button", { name: /Remove target for/ }).click();
   await expect(page.locator(".target-card")).toHaveCount(0);
+});
+
+test("verified-match UI contract shows two retailers and their past price rows", async ({
+  page,
+}) => {
+  // Explicit intercepted contract, isolated from real retailer observations and storage.
+  await page.route("**/api/v1/products/*/compare", (route) =>
+    route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        product_id: productId,
+        checked_at: new Date().toISOString(),
+        cached: false,
+        history_note: "Recorded evidence only",
+        stores: [
+          {
+            retailer: "contract",
+            retailer_name: "Contract store",
+            status: "verified",
+            message: "Matching offer joined the comparison.",
+            search_url: "https://store.example.org/search",
+            items: [],
+          },
+        ],
+      }),
+    }),
+  );
+  await page.route("**/api/v1/products/*/history?*", async (route) => {
+    const data = await (await route.fetch()).json();
+    const series = data.series[0];
+    data.series.push({
+      ...series,
+      offer_id: "contract-offer",
+      retailer_id: "contract",
+      name: "Contract store",
+      source_name: "Controlled browser contract",
+      product_url: null,
+      color: "#155c45",
+      points: series.points.map((point: Record<string, unknown>) => ({
+        ...point,
+        item_paise: 3500000,
+        total_paise: 3500000,
+        price_paise: 3500000,
+      })),
+    });
+    await route.fulfill({ json: data });
+  });
+  await page.route("**/api/v1/products/*", async (route) => {
+    if (
+      route.request().method() !== "GET" ||
+      /\/(history|assessment|compare)/.test(route.request().url())
+    )
+      return route.continue();
+    const data = await (await route.fetch()).json();
+    data.offers.push({
+      ...data.offers[0],
+      id: "contract-offer",
+      retailer_id: "contract",
+      retailer_name: "Contract store",
+      source_name: "Controlled browser contract",
+      product_url: null,
+      item_paise: 3500000,
+      total_paise: 3500000,
+    });
+    data.best_price_paise = 3500000;
+    await route.fulfill({ json: data });
+  });
+  await page.goto(productRoute);
+  await expect(page.locator(".offers-panel tbody tr")).toHaveCount(2);
+  await expect(page.locator(".chart-legend")).toContainText("Contract store");
+  await expect(page.locator(".ledger-panel")).toContainText(
+    "Controlled browser contract",
+  );
+  await expect(page.locator(".best-price strong")).toHaveText("₹35,000");
 });

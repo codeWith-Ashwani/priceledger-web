@@ -15,11 +15,11 @@ Open http://127.0.0.1:5173. Start [priceledger-api](https://github.com/codeWith-
 
 ## Product flow
 
-Paste an Amazon India, Flipkart or Meesho product link, or enter brand, model and variant. Name searches return retailer candidates; choose the exact listing to check its current price. URL lookups load real readable retailer data through the API and record timestamped observations. The initial screen contains no products, invented prices or default comparison. No lookup runs until the user submits an input.
+Paste a public ecommerce product link, or enter brand, model and variant. Dedicated Amazon India/Flipkart/Meesho handling and a generic structured-product reader accept readable source pages. Name searches return retailer candidates; choose the exact listing to check its current price. URL lookups load real readable retailer data through the API and record timestamped observations. The initial screen contains no products, invented prices or default comparison. No lookup runs until the user submits an input.
 
 Comparisons show real product imagery when supplied, retailer/source, online/offline channel, India timestamps, item price, delivery, stock and freshness. Item-price history supports 30/90/365-day and all-recorded views, retailer toggles and exact date inspection. A single observation is shown as a point; missing history stays missing. The delivered-total assessment requires enough actual observations. Targets are stored on the current browser only; account sync and external notifications are not implemented.
 
-Retailers may block access or return unreadable data. The UI reports those failures rather than creating a product or guessed price. Similar model names are not automatically matched across shops. Full launch-to-today history requires a real historical source; otherwise the timeline starts with the first observation. Offline quotes/ranges remain unavailable until dated shop evidence is added. Amazon/Flipkart current-page lookup has been exercised during development; universal retailer coverage is not guaranteed, and Meesho access was limited in live testing.
+Retailers may block access or return unreadable data. The UI reports those failures rather than creating a product or guessed price. The frontend automatically searches other connected retailers after resolving one listing. Verified exact variants join the price table and graph; uncertain or different variants show their own real prices and reasons separately. Full launch-to-today history requires a real historical source; otherwise the timeline starts with the first observation. Offline quotes/ranges remain unavailable until dated shop evidence is added. Amazon/Flipkart current-page lookup has been exercised during development; universal retailer coverage is not guaranteed, and Meesho access was limited in live testing.
 
 ## Verify
 
@@ -38,3 +38,9 @@ npm run test:e2e
 The suite tests a real submitted link, initial empty state, source/timestamp display, date inspection, image sizing, saved targets and error recovery. Search/error contracts use explicit request interception where stated. Live checks depend on retailer availability and are not part of the deterministic unit CI. Browser artifacts are ignored by Git.
 
 Only README documentation is published. Research, sprints and QA screenshots remain local; dependencies, build output and credentials are excluded. Both repositories remain private until the owner explicitly changes visibility.
+
+## Store comparison and historical provenance
+
+One submitted URL starts a comparison scan without requiring another retailer link. The API discovers candidate listings at connected stores, checks their actual metadata and records genuine observations. The UI reports verified matches, variant differences, access failures and missing matches. Phone matching includes RAM, storage, colour, model and condition; a different RAM variant never becomes the cheapest-price winner for the submitted phone. Valid matching GTINs support other product categories.
+
+The history ledger lists the precise India date/time, retailer, online/offline channel, item price, delivered total and source for each returned observation, with 20-row pagination. Verified store offers share the product graph. Other variants have separate history links. Acceptance of a public source URL does not imply universal retailer discovery or that its past prices are available. Earlier history remains unavailable until genuine evidence is obtained/imported.

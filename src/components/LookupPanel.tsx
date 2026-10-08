@@ -54,8 +54,8 @@ export default function LookupPanel({
       </form>
       <p className="lookup-help">
         <Link size={14} />
-        Amazon India · Flipkart · Meesho · choose the exact colour, size and
-        pack
+        Paste a public ecommerce product URL · we’ll look for the same variant
+        across connected stores
       </p>
       {lookup.isError && (
         <div className="error-state" role="alert">

@@ -111,6 +111,33 @@ export interface SearchStore {
   }[];
 }
 
+export interface ComparisonScan {
+  product_id: string;
+  checked_at: string;
+  cached: boolean;
+  history_note: string;
+  stores: {
+    retailer: string;
+    retailer_name: string;
+    status: string;
+    message: string;
+    search_url: string;
+    items: {
+      product_id: string;
+      title: string;
+      url: string;
+      item_paise: number;
+      shipping_paise: number | null;
+      availability: string;
+      condition: string;
+      match_status: string;
+      reason: string;
+      source_name: string;
+      observed_at: string;
+    }[];
+  }[];
+}
+
 export type LookupResult =
   | { kind: "product"; product_id: string; cached: boolean; message: string }
   | { kind: "search"; query: string; stores: SearchStore[]; message: string };
@@ -127,6 +154,23 @@ async function get<T>(route: string, signal?: AbortSignal): Promise<T> {
 }
 
 export const api = {
+  comparison: async (
+    id: string,
+    signal?: AbortSignal,
+  ): Promise<ComparisonScan> => {
+    const response = await fetch(
+      `${base}/products/${encodeURIComponent(id)}/compare`,
+      { method: "POST", signal },
+    );
+    const data = await response.json();
+    if (!response.ok)
+      throw new Error(
+        typeof data.detail === "string"
+          ? data.detail
+          : (data.detail?.message ?? "Other stores could not be checked."),
+      );
+    return data as ComparisonScan;
+  },
   lookup: async (
     query: string,
     signal?: AbortSignal,
