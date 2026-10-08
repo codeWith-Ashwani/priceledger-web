@@ -1,0 +1,77 @@
+import { expect, test } from '@playwright/test'
+
+test('loads real API data with responsive layout and evidence labels', async ({ page }, info) => {
+  const errors: string[] = []
+  page.on('pageerror', error => errors.push(error.message))
+  await page.goto('/')
+  await expect(page.getByRole('heading', { name: 'Good deals have a history.' })).toBeVisible()
+  await expect(page.locator('.product-card')).toHaveCount(6)
+  await expect(page.locator('.offers-table tbody tr')).toHaveCount(3)
+  await expect(page.locator('.history-svg')).toBeVisible()
+  await expect(page.getByText('Fictional products and synthetic prices', { exact: false })).toBeVisible()
+  await expect(page.locator('.insight-panel h4')).toContainText('usual price')
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  expect(errors).toEqual([])
+  await page.screenshot({ path: info.outputPath('workspace.png'), fullPage: true })
+})
+
+test('filters categories and handles an empty search', async ({ page }) => {
+  await page.goto('/')
+  await page.locator('.category-chip').filter({ hasText: 'Books' }).click()
+  await expect(page.locator('.product-card')).toHaveCount(1)
+  await expect(page.locator('.card-info h2')).toHaveText('The quiet notebook')
+  await page.getByRole('button', { name: 'All categories', exact: true }).click()
+  await page.getByRole('textbox', { name: 'Search products' }).fill('not-a-real-product')
+  await expect(page.getByRole('heading', { name: 'No matching products yet.' })).toBeVisible()
+  await page.getByRole('button', { name: 'Clear filters' }).click()
+  await expect(page.locator('.product-card')).toHaveCount(6)
+})
+
+test('changes exact product and preserves browser navigation', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.locator('.product-description h2')).toContainText('Auralis')
+  await page.locator('.product-card').filter({ hasText: 'Single-origin ground coffee' }).click()
+  await expect(page.locator('.product-description h2')).toContainText('Field')
+  await expect(page).toHaveURL(/product=field-coffee/)
+  await page.goBack()
+  await expect(page.locator('.product-description h2')).toContainText('Auralis')
+})
+
+test('switches graph periods, retailers and keyboard date inspection', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.locator('.history-svg')).toBeVisible()
+  await page.getByRole('button', { name: '1Y', exact: true }).click()
+  await expect(page.locator('.history-svg')).toHaveAttribute('aria-label', /365-day/)
+  const flipkart = page.getByRole('button', { name: 'Flipkart', exact: true })
+  await flipkart.click()
+  await expect(flipkart).toHaveAttribute('aria-pressed', 'false')
+  const slider = page.getByRole('slider', { name: 'Inspect history date' })
+  await slider.focus(); await slider.press('ArrowLeft')
+  await expect(page.locator('.chart-tooltip')).toBeVisible()
+  await expect(page.locator('.chart-tooltip')).not.toContainText('Flipkart')
+})
+
+test('saves, persists and removes a device-local target', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Set my target' }).click()
+  await expect(page.getByRole('dialog')).toBeVisible()
+  await page.getByRole('textbox', { name: 'Target price in rupees' }).fill('1234.50')
+  await page.getByRole('button', { name: 'Save target' }).click()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await page.reload()
+  await page.getByRole('button', { name: /My targets/ }).click()
+  await expect(page.locator('.target-card')).toHaveCount(1)
+  await expect(page.locator('.target-card')).toContainText('₹1,234.50')
+  await expect(page.getByText('External notifications aren’t enabled yet.', { exact: false })).toBeVisible()
+  await page.getByRole('button', { name: /Remove target for/ }).click()
+  await expect(page.locator('.target-card')).toHaveCount(0)
+})
+
+test('recovers from catalog service failure without a blank page', async ({ page }) => {
+  await page.route('**/api/v1/products?*', route => route.fulfill({ status: 503, body: '{}' }))
+  await page.goto('/')
+  await expect(page.getByRole('heading', { name: 'The catalog couldn’t load.' })).toBeVisible()
+  await page.unroute('**/api/v1/products?*')
+  await page.getByRole('button', { name: 'Try again', exact: true }).click()
+  await expect(page.locator('.product-card')).toHaveCount(6)
+})
