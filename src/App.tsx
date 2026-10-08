@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowDownRight,
   ArrowRight,
@@ -7,26 +7,19 @@ import {
   Bell,
   Bookmark,
   Check,
-  Info,
-  Search,
   ShieldCheck,
-  SlidersHorizontal,
   X,
 } from "lucide-react";
-import { api } from "./api";
 import type { Product } from "./api";
-import { rupees, titleCase } from "./format";
+import { rupees } from "./format";
 import { readWatches, saveWatches } from "./watchlist";
-import ProductArt from "./components/ProductArt";
+import LookupPanel from "./components/LookupPanel";
 import Comparison from "./components/Comparison";
 import MethodDialog from "./components/MethodDialog";
 import WatchDialog from "./components/WatchDialog";
 
 export default function App() {
-  const [search, setSearch] = useState("");
-  const [debounced, setDebounced] = useState("");
-  const [category, setCategory] = useState("");
-  const [offset, setOffset] = useState(0);
+  const queryClient = useQueryClient();
   const [selectedId, setSelectedId] = useState(
     () => new URLSearchParams(location.search).get("product") ?? "",
   );
@@ -35,13 +28,6 @@ export default function App() {
   const [watchProduct, setWatchProduct] = useState<Product | null>(null);
   const [methodOpen, setMethodOpen] = useState(false);
   const [notice, setNotice] = useState("");
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebounced(search);
-      setOffset(0);
-    }, 250);
-    return () => clearTimeout(timer);
-  }, [search]);
   useEffect(() => {
     const listener = () =>
       setSelectedId(new URLSearchParams(location.search).get("product") ?? "");
@@ -53,27 +39,10 @@ export default function App() {
     const timer = setTimeout(() => setNotice(""), 4500);
     return () => clearTimeout(timer);
   }, [notice]);
-  const health = useQuery({
-    queryKey: ["health"],
-    queryFn: ({ signal }) => api.health(signal),
-  });
-  const categories = useQuery({
-    queryKey: ["categories"],
-    queryFn: ({ signal }) => api.categories(signal),
-  });
-  const products = useQuery({
-    queryKey: ["products", debounced, category, offset],
-    queryFn: ({ signal }) => api.products(debounced, category, offset, signal),
-  });
-  useEffect(() => {
-    if (selectedId || !products.data?.items.length) return;
-    const id = products.data.items[0].id;
-    setSelectedId(id);
-    const url = new URL(location.href);
-    url.searchParams.set("product", id);
-    window.history.replaceState({}, "", url);
-  }, [selectedId, products.data]);
   function selectProduct(id: string, scroll = false) {
+    void queryClient.invalidateQueries({ queryKey: ["product", id] });
+    void queryClient.invalidateQueries({ queryKey: ["history", id] });
+    void queryClient.invalidateQueries({ queryKey: ["assessment", id] });
     setSelectedId(id);
     setView("explore");
     const url = new URL(location.href);
@@ -158,9 +127,7 @@ export default function App() {
                   checkout
                 </span>
                 <h1>Good deals have a history.</h1>
-                <p>
-                  Compare the price. See the journey. Buy with the full picture.
-                </p>
+                <p>Your product. Its real price. Its recorded journey.</p>
               </div>
               <button
                 className="trust-pill"
@@ -171,171 +138,7 @@ export default function App() {
                 <ArrowUpRight size={15} />
               </button>
             </section>
-            {health.data?.demo_mode && (
-              <div className="demo-banner">
-                <Info size={16} />
-                <span>
-                  <strong>Sample workspace.</strong> Fictional products and
-                  synthetic prices for exploring the experience.
-                </span>
-                <button onClick={() => setMethodOpen(true)}>
-                  About this data <ArrowUpRight size={13} />
-                </button>
-              </div>
-            )}
-            <section className="explore-section" aria-label="Find a product">
-              <div className="search-row">
-                <label className="search-box">
-                  <Search size={20} />
-                  <input
-                    aria-label="Search products"
-                    placeholder="Find a product or brand…"
-                    value={search}
-                    onChange={(event) => setSearch(event.target.value)}
-                  />
-                  {search && (
-                    <button
-                      aria-label="Clear search"
-                      onClick={() => setSearch("")}
-                    >
-                      <X size={17} />
-                    </button>
-                  )}
-                  <kbd>Search</kbd>
-                </label>
-                <div className="catalog-count">
-                  <SlidersHorizontal size={17} />
-                  {products.data?.total ?? "—"} tracked variants
-                </div>
-              </div>
-              <div className="category-row" aria-label="Filter by category">
-                <button
-                  className={
-                    !category ? "category-chip selected" : "category-chip"
-                  }
-                  onClick={() => {
-                    setCategory("");
-                    setOffset(0);
-                  }}
-                >
-                  All categories
-                </button>
-                {categories.data?.map((item) => (
-                  <button
-                    key={item.id}
-                    className={
-                      category === item.id
-                        ? "category-chip selected"
-                        : "category-chip"
-                    }
-                    onClick={() => {
-                      setCategory(item.id);
-                      setOffset(0);
-                    }}
-                  >
-                    {item.name}
-                    <span>{item.count}</span>
-                  </button>
-                ))}
-              </div>
-              {products.isPending ? (
-                <div className="loading-state" role="status">
-                  <span className="spinner" />
-                  Loading the catalog…
-                </div>
-              ) : products.isError ? (
-                <div className="error-state" role="alert">
-                  <h2>The catalog couldn’t load.</h2>
-                  <p>
-                    Check that the comparison service is running, then try
-                    again.
-                  </p>
-                  <button
-                    className="button secondary"
-                    onClick={() => {
-                      void products.refetch();
-                      void categories.refetch();
-                      void health.refetch();
-                    }}
-                  >
-                    Try again
-                  </button>
-                </div>
-              ) : products.data?.items.length === 0 ? (
-                <div className="empty-state">
-                  <Search size={28} />
-                  <h2>No matching products yet.</h2>
-                  <p>
-                    Try another search or category. Only tracked variants appear
-                    here.
-                  </p>
-                  <button
-                    className="text-button"
-                    onClick={() => {
-                      setSearch("");
-                      setCategory("");
-                      setOffset(0);
-                    }}
-                  >
-                    Clear filters <ArrowRight size={14} />
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <div className="product-grid">
-                    {products.data?.items.map((item) => (
-                      <button
-                        key={item.id}
-                        className={`product-card ${selectedId === item.id ? "selected" : ""}`}
-                        onClick={() => selectProduct(item.id, true)}
-                        aria-pressed={selectedId === item.id}
-                      >
-                        <div className="card-art">
-                          <ProductArt kind={item.illustration} compact />
-                          <span className="card-category">
-                            {titleCase(item.category)}
-                          </span>
-                          <span className="card-arrow">
-                            <ArrowUpRight size={17} />
-                          </span>
-                        </div>
-                        <div className="card-info">
-                          <span className="product-brand">{item.brand}</span>
-                          <h2>{item.title}</h2>
-                          <p>{item.variant_label}</p>
-                          <div className="card-bottom">
-                            <strong>{rupees(item.best_price_paise)}</strong>
-                            <span>{item.retailer_count} stores</span>
-                          </div>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                  {products.data && products.data.total > 24 && (
-                    <div className="pagination">
-                      <button
-                        className="button secondary"
-                        disabled={offset === 0}
-                        onClick={() => setOffset(Math.max(0, offset - 24))}
-                      >
-                        Previous
-                      </button>
-                      <span>
-                        Page {offset / 24 + 1} of{" "}
-                        {Math.ceil(products.data.total / 24)}
-                      </span>
-                      <button
-                        className="button secondary"
-                        disabled={offset + 24 >= products.data.total}
-                        onClick={() => setOffset(offset + 24)}
-                      >
-                        Next
-                      </button>
-                    </div>
-                  )}
-                </>
-              )}
-            </section>
+            <LookupPanel onProduct={(id) => selectProduct(id)} />
             {selectedId && (
               <Comparison
                 productId={selectedId}

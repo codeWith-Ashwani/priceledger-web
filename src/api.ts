@@ -7,11 +7,16 @@ export interface Product {
   attributes: Record<string, string | number | boolean>;
   illustration: string;
   is_demo: boolean;
+  image_url: string | null;
+  best_item_price_paise: number | null;
   best_price_paise: number | null;
   retailer_count: number;
 }
 
 export interface Offer {
+  product_url: string | null;
+  channel: "online" | "offline";
+  availability: "in_stock" | "out_of_stock" | "unknown";
   id: string;
   retailer_id: string;
   retailer_name: string;
@@ -37,6 +42,7 @@ export interface ProductDetail extends Product {
 }
 
 export interface HistoryPoint {
+  price_paise?: number | null;
   at: string;
   total_paise: number | null;
   item_paise: number | null;
@@ -45,6 +51,9 @@ export interface HistoryPoint {
 }
 
 export interface HistorySeries {
+  channel: string;
+  source_name: string;
+  product_url: string | null;
   offer_id: string;
   retailer_id: string;
   name: string;
@@ -53,6 +62,7 @@ export interface HistorySeries {
 }
 
 export interface PriceHistory {
+  price_basis: "item" | "delivered";
   product_id: string;
   days: number;
   currency: "INR";
@@ -87,6 +97,24 @@ const base = (
   import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000/api/v1"
 ).replace(/\/$/, "");
 
+export interface SearchStore {
+  retailer: string;
+  retailer_name: string;
+  status: string;
+  message: string;
+  search_url: string;
+  items: {
+    title: string;
+    url: string;
+    retailer: string;
+    retailer_name: string;
+  }[];
+}
+
+export type LookupResult =
+  | { kind: "product"; product_id: string; cached: boolean; message: string }
+  | { kind: "search"; query: string; stores: SearchStore[]; message: string };
+
 async function get<T>(route: string, signal?: AbortSignal): Promise<T> {
   const response = await fetch(`${base}${route}`, { signal });
   if (!response.ok)
@@ -99,6 +127,25 @@ async function get<T>(route: string, signal?: AbortSignal): Promise<T> {
 }
 
 export const api = {
+  lookup: async (
+    query: string,
+    signal?: AbortSignal,
+  ): Promise<LookupResult> => {
+    const response = await fetch(`${base}/lookup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query }),
+      signal,
+    });
+    const data = await response.json();
+    if (!response.ok)
+      throw new Error(
+        typeof data.detail === "string"
+          ? data.detail
+          : (data.detail?.message ?? "The product lookup could not complete."),
+      );
+    return data as LookupResult;
+  },
   health: (signal?: AbortSignal) =>
     get<{ status: string; demo_mode: boolean }>("/health", signal),
   categories: (signal?: AbortSignal) =>
@@ -112,7 +159,7 @@ export const api = {
     get<ProductDetail>(`/products/${encodeURIComponent(id)}`, signal),
   history: (id: string, days: number, signal?: AbortSignal) =>
     get<PriceHistory>(
-      `/products/${encodeURIComponent(id)}/history?days=${days}`,
+      `/products/${encodeURIComponent(id)}/history?days=${days}&basis=item`,
       signal,
     ),
   assessment: (id: string, signal?: AbortSignal) =>

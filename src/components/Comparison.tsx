@@ -13,7 +13,7 @@ import {
 import { api } from "../api";
 import type { Product } from "../api";
 import { rupees, shortDate, titleCase } from "../format";
-import ProductArt from "./ProductArt";
+import ProductImage from "./ProductImage";
 import HistoryChart from "./HistoryChart";
 
 const labels = {
@@ -52,6 +52,9 @@ export default function Comparison({
       (offer) => offer.in_stock && !offer.stale && offer.total_paise !== null,
     )
     .sort((a, b) => a.total_paise! - b.total_paise!)[0];
+  const listed = product?.offers
+    .filter((offer) => !offer.stale && offer.item_paise !== null)
+    .sort((a, b) => a.item_paise! - b.item_paise!)[0];
   return (
     <section
       id="comparison"
@@ -62,7 +65,7 @@ export default function Comparison({
         <span>Your price perspective</span>
         <span className="muted">
           <ShieldCheck size={14} />
-          Exact variants, comparable offers
+          Dated prices with their source
         </span>
       </div>
       {detail.isPending ? (
@@ -85,24 +88,25 @@ export default function Comparison({
         product && (
           <>
             <div className="product-overview">
-              <ProductArt kind={product.illustration} />
+              <ProductImage url={product.image_url} title={product.title} />
               <div className="product-description">
                 <div className="breadcrumbs">
                   {titleCase(product.category)}
                   <span>/</span>
                   {product.brand}
                 </div>
-                <h2>
-                  {product.brand} {product.title}
-                </h2>
+                <h2>{product.title}</h2>
                 <p>{product.variant_label}</p>
                 <div className="variant-tags">
                   <span>
                     <Check size={13} />
-                    Exact variant
+                    Retailer listing
                   </span>
-                  <span>New condition</span>
-                  {product.is_demo && <span>Sample product</span>}
+                  <span>
+                    {product.offers[0]?.condition === "new"
+                      ? "New condition"
+                      : "Check condition with retailer"}
+                  </span>
                 </div>
                 <div className="coverage-note">
                   <Clock3 size={14} />
@@ -113,12 +117,24 @@ export default function Comparison({
                 </div>
               </div>
               <div className="best-price">
-                <span>Lowest fresh delivered total</span>
-                <strong>{rupees(product.best_price_paise)}</strong>
+                <span>
+                  {best
+                    ? "Lowest fresh delivered total"
+                    : "Latest listed item price"}
+                </span>
+                <strong>
+                  {rupees(
+                    best
+                      ? product.best_price_paise
+                      : (listed?.item_paise ?? null),
+                  )}
+                </strong>
                 <p>
                   {best
                     ? `${best.retailer_name} · item + known delivery`
-                    : "No comparable fresh offers"}
+                    : listed
+                      ? `${listed.retailer_name} · ${listed.availability === "out_of_stock" ? "out of stock" : "delivery or availability not confirmed"}`
+                      : "No fresh price available"}
                 </p>
                 <button
                   className="button primary"
@@ -137,17 +153,21 @@ export default function Comparison({
                 <div className="panel-heading">
                   <div>
                     <h3 id="history-title">The price journey</h3>
-                    <p>Every recorded change, in context.</p>
+                    <p>Recorded item prices · shipping shown separately.</p>
                   </div>
                   <div className="period-switch" aria-label="History period">
-                    {[30, 90, 365].map((period) => (
+                    {[30, 90, 365, 36500].map((period) => (
                       <button
                         key={period}
                         className={days === period ? "selected" : ""}
                         aria-pressed={days === period}
                         onClick={() => setDays(period)}
                       >
-                        {period === 365 ? "1Y" : `${period}D`}
+                        {period === 36500
+                          ? "All"
+                          : period === 365
+                            ? "1Y"
+                            : `${period}D`}
                       </button>
                     ))}
                   </div>
@@ -168,7 +188,7 @@ export default function Comparison({
                     </strong>
                   </div>
                   <div>
-                    <span>Latest comparable price</span>
+                    <span>Latest delivered total</span>
                     <strong className="green">
                       {rupees(product.best_price_paise)}
                     </strong>
@@ -329,12 +349,25 @@ export default function Comparison({
                                 {offer.retailer_name.charAt(0)}
                               </span>
                               <span className="store-name">
-                                {offer.retailer_name}
+                                {offer.product_url ? (
+                                  <a
+                                    href={offer.product_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    {offer.retailer_name}{" "}
+                                    <ArrowUpRight size={12} />
+                                  </a>
+                                ) : (
+                                  offer.retailer_name
+                                )}
                                 <small>
-                                  {offer.is_demo
-                                    ? "Sample offer"
-                                    : offer.seller}
+                                  {offer.channel === "offline"
+                                    ? "Offline"
+                                    : "Online"}{" "}
+                                  · {offer.seller}
                                 </small>
+                                <small>{offer.source_name}</small>
                               </span>
                             </td>
                             <td>{rupees(offer.item_paise)}</td>
@@ -360,15 +393,25 @@ export default function Comparison({
                                 className={`stock-status ${!offer.in_stock || offer.stale ? "unavailable" : ""}`}
                               >
                                 <span />
-                                {!offer.in_stock
-                                  ? "Out of stock"
-                                  : offer.stale
-                                    ? "Stale observation"
-                                    : "Available"}
+                                {offer.availability === "unknown"
+                                  ? "Availability unknown"
+                                  : !offer.in_stock
+                                    ? "Out of stock"
+                                    : offer.stale
+                                      ? "Stale observation"
+                                      : "Available"}
                               </span>
                               {offer.observed_at && (
                                 <small className="observed-date">
-                                  {shortDate(offer.observed_at)}
+                                  {new Date(offer.observed_at).toLocaleString(
+                                    "en-IN",
+                                    {
+                                      timeZone: "Asia/Kolkata",
+                                      dateStyle: "medium",
+                                      timeStyle: "short",
+                                    },
+                                  )}{" "}
+                                  IST
                                 </small>
                               )}
                             </td>
@@ -384,9 +427,9 @@ export default function Comparison({
                 )}
                 <div className="table-footnote">
                   <Info size={14} />
-                  {product.is_demo
-                    ? "All prices above are synthetic. They cannot be used to make a purchase."
-                    : "Prices apply to the stated context. Check the retailer before purchasing."}
+                  Prices come from the recorded source. Delivery, stock and
+                  checkout prices may depend on your postcode or account. Other
+                  retailers appear only after the exact variant is verified.
                 </div>
               </section>
               <aside className="local-card">

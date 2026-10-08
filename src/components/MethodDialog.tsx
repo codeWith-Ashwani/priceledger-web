@@ -44,8 +44,11 @@ export default function MethodDialog({ close }: { close: () => void }) {
       <div className="sample-note">
         <Info size={17} />
         <span>
-          This preview has no connected live sources or local estimates. Any
-          sample-labelled products and prices are fictional development data.
+          Product links are checked against readable retailer pages. Retailer
+          access may be blocked, and launch-to-today history is available only
+          when an actual historical source exists. Tracking starts with the
+          first recorded observation. Offline prices require dated shop
+          evidence; they are never calculated from an online discount.
         </span>
       </div>
     </dialog>

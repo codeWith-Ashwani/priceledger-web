@@ -3,7 +3,7 @@ export interface Watch {
   title: string;
   targetPaise: number;
 }
-const key = "priceledger:watches:v1";
+const key = "priceledger:watches:v2";
 
 export function readWatches(): Watch[] {
   try {

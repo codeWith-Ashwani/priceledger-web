@@ -2,7 +2,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { CSSProperties, PointerEvent } from "react";
 import type { PriceHistory } from "../api";
 import { stepSegments } from "../chart";
-import { rupees, shortDate } from "../format";
+import { rupees } from "../format";
 
 const LEFT = 68,
   RIGHT = 22,
@@ -15,7 +15,15 @@ export default function HistoryChart({ history }: { history: PriceHistory }) {
   const [width, setWidth] = useState(820);
   const chartRef = useRef<HTMLDivElement>(null);
   const id = useId().replace(/:/g, "");
-  const visible = history.series.filter(
+  const plottedSeries = history.series.map((series) => ({
+    ...series,
+    points: series.points.map((point) => ({
+      ...point,
+      total_paise:
+        point.price_paise === undefined ? point.total_paise : point.price_paise,
+    })),
+  }));
+  const visible = plottedSeries.filter(
     (series) => !hidden.includes(series.offer_id),
   );
   const dates = useMemo(
@@ -100,14 +108,16 @@ export default function HistoryChart({ history }: { history: PriceHistory }) {
             {series.name}
           </button>
         ))}
-        <span className="chart-unit">Delivered price · INR</span>
+        <span className="chart-unit">
+          {history.price_basis === "item" ? "Item" : "Delivered"} price · INR
+        </span>
       </div>
       <div className="chart-wrap" ref={chartRef}>
         <svg
           className="history-svg"
           viewBox={`0 0 ${W} ${H}`}
           role="img"
-          aria-label={`Recorded ${history.days}-day delivered price history. Use the date slider below for exact values.`}
+          aria-label={`Recorded ${history.price_basis} price history. Use the date slider below for exact values.`}
           onPointerMove={move}
           onPointerLeave={() => setCursor(null)}
         >
@@ -140,15 +150,26 @@ export default function HistoryChart({ history }: { history: PriceHistory }) {
               </g>
             );
           })}
-          {(width < 500 ? [0, 2, 4] : [0, 1, 2, 3, 4]).map((tick) => {
+          {(dates.length === 1
+            ? [0]
+            : width < 500
+              ? [0, 2, 4]
+              : [0, 1, 2, 3, 4]
+          ).map((tick) => {
             const timestamp = start + ((end - start) * tick) / 4;
             return (
               <text
                 key={tick}
-                x={x(timestamp)}
+                x={dates.length === 1 ? W / 2 : x(timestamp)}
                 y={H - 7}
                 textAnchor={
-                  tick === 0 ? "start" : tick === 4 ? "end" : "middle"
+                  dates.length === 1
+                    ? "middle"
+                    : tick === 0
+                      ? "start"
+                      : tick === 4
+                        ? "end"
+                        : "middle"
                 }
                 className="axis-label"
               >
@@ -181,10 +202,23 @@ export default function HistoryChart({ history }: { history: PriceHistory }) {
               ),
             ),
           )}
+          {visible.map((series) =>
+            series.points
+              .filter((point) => point.total_paise !== null)
+              .map((point) => (
+                <circle
+                  key={`${series.offer_id}:${point.at}`}
+                  cx={dates.length === 1 ? W / 2 : x(Date.parse(point.at))}
+                  cy={y(point.total_paise!)}
+                  r={dates.length === 1 ? 5 : 2.3}
+                  fill={series.color}
+                />
+              )),
+          )}
           {selectedTime !== null && (
             <line
-              x1={x(selectedTime)}
-              x2={x(selectedTime)}
+              x1={dates.length === 1 ? W / 2 : x(selectedTime)}
+              x2={dates.length === 1 ? W / 2 : x(selectedTime)}
               y1={TOP}
               y2={H - BOTTOM}
               stroke="#84928a"
@@ -194,7 +228,14 @@ export default function HistoryChart({ history }: { history: PriceHistory }) {
         </svg>
         {selectedTime !== null && (
           <div className="chart-tooltip" role="status">
-            <strong>{shortDate(new Date(selectedTime).toISOString())}</strong>
+            <strong>
+              {new Date(selectedTime).toLocaleString("en-IN", {
+                timeZone: "Asia/Kolkata",
+                dateStyle: "medium",
+                timeStyle: "short",
+              })}{" "}
+              IST
+            </strong>
             {visible.map((series) => {
               const point = series.points.find(
                 (value) => Date.parse(value.at) === selectedTime,
@@ -217,15 +258,25 @@ export default function HistoryChart({ history }: { history: PriceHistory }) {
           min="0"
           max={dates.length - 1}
           value={cursorIndex ?? dates.length - 1}
+          onFocus={() => setCursor(cursorIndex ?? dates.length - 1)}
           onChange={(event) => setCursor(Number(event.target.value))}
         />
       </label>
+      {dates.length === 1 && (
+        <p className="first-observation">
+          First recorded observation. More points will appear after genuine
+          price checks.
+        </p>
+      )}
       <div className="chart-caption">
         <span>
           <i className="gap-mark" />
           Gaps mean unavailable or missing observations.
         </span>
-        <span>No prices are inferred between missing periods.</span>
+        <span>
+          Only recorded observations are shown; earlier history may be
+          unavailable.
+        </span>
       </div>
     </>
   );
