@@ -15,7 +15,7 @@ Open http://127.0.0.1:5173. Start [priceledger-api](https://github.com/codeWith-
 
 ## Product flow
 
-Paste a public ecommerce product link, or enter brand, model and variant. Dedicated Amazon India/Flipkart/Meesho handling and a generic structured-product reader accept readable source pages. Name searches return retailer candidates; choose the exact listing to check its current price. URL lookups load real readable retailer data through the API and record timestamped observations. The initial screen contains no products, invented prices or default comparison. No lookup runs until the user submits an input.
+Paste a public ecommerce product link, or enter brand, model and variant. Amazon India, Flipkart, Meesho, Croma and Reliance Digital adapters and a generic structured-product reader accept readable source pages. Name searches return retailer candidates; choose the exact listing to check its current price. URL lookups load real readable retailer data through the API and record timestamped observations. The initial screen contains no products, invented prices or default comparison. No lookup runs until the user submits an input.
 
 Comparisons show real product imagery when supplied, retailer/source, online/offline channel, India timestamps, item price, delivery, stock and freshness. Item-price history supports 30/90/365-day and all-recorded views, retailer toggles and exact date inspection. A single observation is shown as a point; missing history stays missing. The delivered-total assessment requires enough actual observations. Targets are stored on the current browser only; account sync and external notifications are not implemented.
 

@@ -1,3 +1,6 @@
+.offer-comparison {
+  padding: 24px;
+}
 .offer-comparison .panel-heading h3 {
   font-size: 25px;
   margin: 6px 0;
@@ -228,6 +231,9 @@
   }
 }
 @media (max-width: 600px) {
+  .offer-comparison {
+    padding: 18px;
+  }
   .offer-card-grid {
     grid-template-columns: minmax(0, 1fr);
   }
