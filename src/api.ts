@@ -14,6 +14,15 @@ export interface Product {
 }
 
 export interface Offer {
+  product_id?: string;
+  title?: string;
+  image_url?: string | null;
+  rating?: {
+    value: number;
+    best: number;
+    count: number | null;
+    observed_at?: string;
+  } | null;
   product_url: string | null;
   channel: "online" | "offline";
   availability: "in_stock" | "out_of_stock" | "unknown";
@@ -180,6 +189,8 @@ export interface ComparisonScan {
     items: {
       product_id: string;
       title: string;
+      image_url?: string | null;
+      rating?: Offer["rating"];
       url: string;
       item_paise: number;
       shipping_paise: number | null;

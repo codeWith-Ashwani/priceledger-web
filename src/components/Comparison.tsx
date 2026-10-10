@@ -17,6 +17,7 @@ import ProductImage from "./ProductImage";
 import HistoryChart from "./HistoryChart";
 import HistoryLedger from "./HistoryLedger";
 import HistoryCoverage from "./HistoryCoverage";
+import OfferCards from "./OfferCards";
 
 const labels = {
   below_usual: "Below the usual price",
@@ -71,11 +72,21 @@ export default function Comparison({
     assessment = analysis.data;
   const best = product?.offers
     .filter(
-      (offer) => offer.in_stock && !offer.stale && offer.total_paise !== null,
+      (offer) =>
+        offer.channel === "online" &&
+        offer.in_stock &&
+        !offer.stale &&
+        offer.total_paise !== null,
     )
     .sort((a, b) => a.total_paise! - b.total_paise!)[0];
   const listed = product?.offers
-    .filter((offer) => !offer.stale && offer.item_paise !== null)
+    .filter(
+      (offer) =>
+        offer.channel === "online" &&
+        offer.in_stock &&
+        !offer.stale &&
+        offer.item_paise !== null,
+    )
     .sort((a, b) => a.item_paise! - b.item_paise!)[0];
   return (
     <section
@@ -144,14 +155,12 @@ export default function Comparison({
               <div className="best-price">
                 <span>
                   {best
-                    ? "Lowest fresh delivered total"
+                    ? "Lowest known delivered total"
                     : "Latest listed item price"}
                 </span>
                 <strong>
                   {rupees(
-                    best
-                      ? product.best_price_paise
-                      : (listed?.item_paise ?? null),
+                    best ? best.total_paise : (listed?.item_paise ?? null),
                   )}
                 </strong>
                 <p>
@@ -170,109 +179,14 @@ export default function Comparison({
                 </button>
               </div>
             </div>
-            <section
-              className="panel cross-store-panel"
-              aria-label="Automatic comparison across stores"
-            >
-              <div className="panel-heading">
-                <div>
-                  <h3>Checking the same product across stores</h3>
-                  <p>Verified variants share a comparison and timeline.</p>
-                </div>
-                <button
-                  className="text-button"
-                  disabled={comparison.isFetching}
-                  onClick={() => void comparison.refetch()}
-                >
-                  Check stores again
-                </button>
-              </div>
-              {comparison.isPending && (
-                <p className="cross-store-status" role="status">
-                  <span className="spinner" />
-                  Looking for matching offers at other retailers…
-                </p>
-              )}
-              {comparison.isError && (
-                <p className="cross-store-status" role="alert">
-                  {comparison.error.message}
-                </p>
-              )}
-              {comparison.data?.stores.map((store) => (
-                <div className="cross-store-result" key={store.retailer}>
-                  <div className="cross-store-heading">
-                    <strong>{store.retailer_name}</strong>
-                    <span className={`match-status ${store.status}`}>
-                      {store.status === "verified"
-                        ? "Verified match"
-                        : store.status === "review"
-                          ? "Variant needs verification"
-                          : store.status === "different_variant"
-                            ? "Different variant"
-                            : "No verified offer"}
-                    </span>
-                    <a
-                      href={store.search_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Retailer search <ArrowUpRight size={12} />
-                    </a>
-                  </div>
-                  <p>{store.message}</p>
-                  {store.items
-                    .filter((item) => item.match_status !== "verified")
-                    .map((item) => (
-                      <article className="possible-match" key={item.product_id}>
-                        <div>
-                          <a
-                            href={item.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            {item.title}
-                          </a>
-                          <p>
-                            {item.reason} Excluded from the exact-variant price
-                            comparison.
-                          </p>
-                          <a
-                            className="candidate-history"
-                            href={`/?product=${encodeURIComponent(item.product_id)}`}
-                          >
-                            View this listing’s recorded history
-                          </a>
-                          <small>
-                            {item.source_name} ·{" "}
-                            {new Date(item.observed_at).toLocaleString(
-                              "en-IN",
-                              {
-                                timeZone: "Asia/Kolkata",
-                                dateStyle: "medium",
-                                timeStyle: "short",
-                              },
-                            )}{" "}
-                            IST
-                          </small>
-                        </div>
-                        <div>
-                          <strong>{rupees(item.item_paise)}</strong>
-                          <small>
-                            Listed item price ·{" "}
-                            {item.availability === "in_stock"
-                              ? "in stock"
-                              : "check availability"}
-                          </small>
-                        </div>
-                      </article>
-                    ))}
-                </div>
-              ))}
-              <p className="cross-store-footnote">
-                A store's absence means no matching readable offer was found.
-                Older history appears only where recorded evidence exists.
-              </p>
-            </section>
+            <OfferCards
+              key={productId}
+              product={product}
+              scan={comparison.data}
+              pending={comparison.isFetching}
+              error={comparison.error?.message}
+              refresh={() => void comparison.refetch()}
+            />
             <div className="evidence-grid">
               <section
                 className="panel history-panel"

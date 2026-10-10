@@ -5,6 +5,10 @@ const link =
 const productId = "flipkart:MOBHQENASR3JJ8BN";
 const productRoute = `/?product=${encodeURIComponent(productId)}`;
 
+test.afterEach(async ({ page }) => {
+  await page.unrouteAll({ behavior: "ignoreErrors" });
+});
+
 // These live checks use the actual user-supplied listing recorded by the local API.
 // Failure and search-discovery contracts are intercepted where stated.
 test("starts with user input and no sample catalog", async ({ page }) => {
@@ -64,16 +68,20 @@ test("looks up the user's actual link with dated Flipkart evidence", async ({
   await expect
     .poll(async () =>
       page
-        .locator(".real-product-image img")
+        .locator(".product-overview .real-product-image img")
         .evaluate(
           (image: HTMLImageElement) => image.complete && image.naturalWidth > 0,
         ),
     )
     .toBe(true);
-  const image = await page.locator(".real-product-image img").boundingBox();
-  const container = await page.locator(".real-product-image").boundingBox();
+  const image = await page
+    .locator(".product-overview .real-product-image img")
+    .boundingBox();
+  const container = await page
+    .locator(".product-overview .real-product-image")
+    .boundingBox();
   expect(image!.height).toBeLessThanOrEqual(container!.height);
-  await expect(page.locator(".cross-store-result")).toHaveCount(2, {
+  await expect(page.locator(".cross-store-result")).toHaveCount(4, {
     timeout: 45000,
   });
   await expect(
@@ -82,6 +90,109 @@ test("looks up the user's actual link with dated Flipkart evidence", async ({
   await page.screenshot({
     path: info.outputPath("live-product.png"),
     fullPage: true,
+  });
+  await page.locator(".offer-comparison").screenshot({
+    path: info.outputPath("live-offer-cards.png"),
+    style: ".site-header, .skip-link { visibility: hidden !important; }",
+  });
+});
+
+test("four-store card contract compares ratings and available prices without leaving the page", async ({
+  page,
+}, info) => {
+  // Controlled API response only: these offers never enter the real product database.
+  await page.route("**/api/v1/products/*/compare", (route) =>
+    route.fulfill({
+      json: {
+        product_id: productId,
+        checked_at: new Date().toISOString(),
+        cached: false,
+        stores: [],
+        history_note: "Controlled comparison contract",
+      },
+    }),
+  );
+  await page.route("**/api/v1/products/*", async (route) => {
+    if (
+      route.request().method() !== "GET" ||
+      /\/(history|assessment|compare)/.test(route.request().url())
+    )
+      return route.continue();
+    const data = await (await route.fetch()).json();
+    const base = data.offers[0];
+    data.offers = [
+      { name: "Store Alpha", price: 3200000, shipping: null, available: true },
+      { name: "Store Beta", price: 3300000, shipping: 20000, available: true },
+      { name: "Store Gamma", price: 3400000, shipping: 0, available: true },
+      { name: "Store Delta", price: 3000000, shipping: 0, available: false },
+    ].map((item, index) => ({
+      ...base,
+      id: `contract-${index}`,
+      retailer_id: `contract-${index}`,
+      retailer_name: item.name,
+      title: data.title,
+      image_url: data.image_url,
+      item_paise: item.price,
+      shipping_paise: item.shipping,
+      total_paise: item.shipping === null ? null : item.price + item.shipping,
+      in_stock: item.available,
+      availability: item.available ? "in_stock" : "out_of_stock",
+      stale: false,
+      rating: index === 3 ? null : { value: 4.3, best: 5, count: 120 },
+      product_url: null,
+    }));
+    await route.fulfill({ json: data });
+  });
+  await page.goto(productRoute);
+  const panel = page.locator(".offer-comparison");
+  await expect(panel.locator(".offer-card")).toHaveCount(4);
+  await expect(panel).toContainText("4 stores matched");
+  const alpha = page.getByRole("article", {
+    name: "Store Alpha offer",
+    exact: true,
+  });
+  const beta = page.getByRole("article", {
+    name: "Store Beta offer",
+    exact: true,
+  });
+  const delta = page.getByRole("article", {
+    name: "Store Delta offer",
+    exact: true,
+  });
+  await expect(alpha.getByRole("heading")).toHaveText(
+    "Nothing Phone (4a) (Blue, 128 GB)",
+  );
+  await expect(alpha.locator(".real-product-image img")).toHaveCount(1);
+  await expect(alpha.locator(".offer-rating")).toContainText("4.3/5");
+  await expect(alpha.locator(".offer-rating")).toContainText(
+    "120 feedback entries",
+  );
+  await expect(delta).toContainText("Rating not provided by this store");
+  await expect(delta).toContainText("Out of stock");
+  await expect(alpha.locator(".offer-lowest-badge")).toBeVisible();
+  await expect(delta.locator(".offer-lowest-badge")).toHaveCount(0);
+  await expect(panel.locator(".offer-recommendation")).toContainText(
+    "Store Alpha · ₹32,000",
+  );
+  await panel
+    .getByRole("button", { name: "With delivery", exact: true })
+    .click();
+  await expect(beta.locator(".offer-lowest-badge")).toBeVisible();
+  await expect(alpha.locator(".offer-lowest-badge")).toHaveCount(0);
+  await expect(panel.locator(".offer-recommendation")).toContainText(
+    "Store Beta · ₹33,200",
+  );
+  await expect(panel.locator(".offer-recommendation")).toContainText(
+    "unknown delivery are excluded",
+  );
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await panel.screenshot({
+    path: info.outputPath("controlled-offer-cards.png"),
+    style: ".site-header, .skip-link { visibility: hidden !important; }",
   });
 });
 
