@@ -41,6 +41,10 @@ Only README documentation is published. Research, sprints and QA screenshots rem
 
 ## Store comparison and historical provenance
 
+iQOO products additionally search the manufacturer's official store, keeping the exact selected colour/memory SKU. Single-store results expand their store diagnostics automatically. Blocked access, retry cooldowns and unreadable candidates have distinct labels; absence of a card does not establish absence of stock. Similar retailer model names that lack a shared verified identifier are shown for review and excluded from the winner.
+
+The genuine iQOO browser check requires the local API to have looked up `https://www.amazon.in/dp/B0H1WY1D37` with the updated backend first. It verifies Amazon and the exact official Solar Flame 4GB/128GB SKU, plus the separate Flipkart model-name review. Live retailer availability can change; these browser checks supplement deterministic unit CI.
+
 The offer-card component shows each verified store's own listing name, product image, item price, available product rating and feedback count, delivery, stock, seller and check time. Comparison happens inside PriceLedger; store links are optional purchase links. Item-price ranking excludes unavailable or stale quotes. The **With delivery** switch ranks only confirmed totals and excludes unknown shipping. All tied lowest offers receive a badge; a one-store result explicitly says it cannot establish a cross-store winner.
 
 Discovery now includes configurable Amazon India, Flipkart, Meesho, Croma and Reliance Digital adapters, with electronics stores omitted for known unrelated categories. Already tracked exact matches from other readable public domains can join too. Three or four cards appear only when that many genuine exact matches are available. Missing ratings, unreadable stores and uncertain variants stay explicit; the UI never supplies fake cards to reach a fixed count. The backend still needs adapters or feeds to discover previously unknown retailers automatically.

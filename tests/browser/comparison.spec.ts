@@ -210,6 +210,89 @@ test("rejects unsupported links without showing a fake product", async ({
   await expect(page.locator("#comparison")).toHaveCount(0);
 });
 
+test("single-store results explain unreadable searches and blocked retailers", async ({
+  page,
+}) => {
+  // Explicit discovery-failure contract; no offers or prices are inserted.
+  await page.route("**/api/v1/products/*/compare", (route) =>
+    route.fulfill({
+      json: {
+        product_id: productId,
+        checked_at: new Date().toISOString(),
+        cached: false,
+        history_note: "Controlled failure contract",
+        stores: [
+          {
+            retailer: "croma",
+            retailer_name: "Croma",
+            status: "retailer_blocked",
+            message: "The store did not allow this lookup.",
+            search_url: "https://www.croma.com/searchB",
+            items: [],
+          },
+          {
+            retailer: "amazon",
+            retailer_name: "Amazon",
+            status: "no_matches",
+            message:
+              "The search returned no readable candidates. The store may still stock this product.",
+            search_url: "https://www.amazon.in/s",
+            items: [],
+          },
+        ],
+      },
+    }),
+  );
+  await page.goto(productRoute);
+  const checks = page.locator(".store-check-details");
+  await expect(checks).toHaveAttribute("open", "");
+  await expect(
+    checks.getByText("Store blocked access", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    checks.getByText("No readable candidates", { exact: true }),
+  ).toBeVisible();
+  await expect(checks).toContainText("may still stock this product");
+});
+
+test("actual iQOO listing compares Amazon with the exact official-store SKU", async ({
+  page,
+}, info) => {
+  // Genuine recorded retailer observations; the local API must have this lookup available.
+  await page.goto("/?product=amazon%3AB0H1WY1D37");
+  await expect(page.locator(".product-description h2")).toContainText(
+    "Solar Flame, 4GB RAM, 128GB Storage",
+  );
+  const official = page.getByRole("article", {
+    name: "iQOO Official Store offer",
+    exact: true,
+  });
+  await expect(official).toBeVisible({ timeout: 45000 });
+  await expect(official.getByRole("heading")).toContainText(
+    "4GB+128GB Solar Flame",
+  );
+  await expect(
+    official.getByRole("link", { name: "Visit store" }),
+  ).toHaveAttribute("href", "https://shop.iqoo.com/in/product/2077?skuId=8478");
+  await expect(
+    page.getByRole("article", { name: "Amazon offer", exact: true }),
+  ).toBeVisible();
+  const checks = page.locator(".store-check-details");
+  await checks.locator("summary").click();
+  await expect(checks).toContainText(
+    "a shared manufacturer identifier is needed",
+  );
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await page.locator(".offer-comparison").screenshot({
+    path: info.outputPath("actual-iqoo-offers.png"),
+    style: ".site-header, .skip-link { visibility: hidden !important; }",
+  });
+});
+
 test("shows retailer access failure and lets the user try another input", async ({
   page,
 }) => {

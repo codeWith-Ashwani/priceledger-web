@@ -236,10 +236,15 @@ export default function OfferCards({
         <p role="status">Finding verified offers…</p>
       )}
       {scan && (
-        <details className="store-check-details">
+        <details className="store-check-details" open={ranked.storeCount < 2}>
           <summary>
             Store checks · {scan.stores.length} other retailers checked
           </summary>
+          <p className="cross-store-footnote">
+            A missing card does not mean the store has no stock. These checks
+            explain unreadable pages, retry limits and listings awaiting
+            verification.
+          </p>
           {scan.stores.map((store) => (
             <div className="cross-store-result" key={store.retailer}>
               <div className="cross-store-heading">
@@ -251,7 +256,13 @@ export default function OfferCards({
                       ? "Different variant"
                       : store.status === "review"
                         ? "Variant needs verification"
-                        : "No verified offer"}
+                        : store.status === "retailer_blocked"
+                          ? "Store blocked access"
+                          : store.status === "collection_limited"
+                            ? "Retry cooldown active"
+                            : store.status === "no_matches"
+                              ? "No readable candidates"
+                              : "No verified offer"}
                 </span>
               </div>
               <p>{store.message}</p>
