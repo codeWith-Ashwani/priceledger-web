@@ -271,6 +271,19 @@ test("actual iQOO listing compares Amazon with the exact official-store SKU", as
   await expect(official.getByRole("heading")).toContainText(
     "4GB+128GB Solar Flame",
   );
+  await official.scrollIntoViewIfNeeded();
+  await expect
+    .poll(
+      async () =>
+        official
+          .locator(".real-product-image img")
+          .evaluate(
+            (image: HTMLImageElement) =>
+              image.complete && image.naturalWidth > 0,
+          ),
+      { timeout: 15000 },
+    )
+    .toBe(true);
   await expect(
     official.getByRole("link", { name: "Visit store" }),
   ).toHaveAttribute("href", "https://shop.iqoo.com/in/product/2077?skuId=8478");
