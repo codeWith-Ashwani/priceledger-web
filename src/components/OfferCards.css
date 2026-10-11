@@ -277,3 +277,56 @@
     gap: 12px;
   }
 }
+.offer-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: end;
+  margin: 18px 0;
+}
+.offer-filters label {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.offer-filters select {
+  padding: 9px 12px;
+  border: 1px solid #dce4df;
+  border-radius: 8px;
+  background: white;
+  color: #253e35;
+  max-width: 100%;
+}
+.offer-filters .offer-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 0;
+}
+.history-stats small {
+  display: block;
+  font-size: 11px;
+  color: #62756c;
+  margin-top: 6px;
+  overflow-wrap: anywhere;
+}
+.history-insights-note {
+  font-size: 11px;
+  line-height: 1.6;
+  color: #62756c;
+  margin: -4px 0 18px;
+}
+@media (max-width: 600px) {
+  .offer-filters label:not(.offer-checkbox) {
+    flex: 1 1 120px;
+    min-width: 0;
+  }
+}
+.target-reached {
+  color: #15734c;
+}
+.target-card small {
+  color: #62756c;
+  font-size: 11px;
+}

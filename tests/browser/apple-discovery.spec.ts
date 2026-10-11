@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import type { ComparisonScan, ProductDetail } from "../../src/api";
+import { rupees } from "../../src/format";
 
 // Genuine owner-submitted product. Run after looking it up with the updated API.
 // Retailer access and live stock can change; no synthetic catalog records are created.
@@ -13,9 +14,18 @@ test("actual iPhone link includes automatic reseller discovery and honest availa
     response.url().includes("MOBHQV9YDG7CGRAM/compare") && response.request().method() === "POST",
     { timeout: 90000 },
   );
+  const insightsResponse = page.waitForResponse(response =>
+    response.url().includes("MOBHQV9YDG7CGRAM/insights?days=90"),
+  );
   await page.goto("/?product=flipkart%3AMOBHQV9YDG7CGRAM");
   const detail = await (await detailResponse).json() as ProductDetail;
   const scan = await (await scanResponse).json() as ComparisonScan;
+  const insights = await (await insightsResponse).json();
+  const statistics = page.getByLabel("Recorded price statistics");
+  await expect(statistics).toContainText(`${insights.observed_days} observed`);
+  await expect(statistics).toContainText(rupees(insights.low?.price_paise ?? null));
+  await expect(statistics).toContainText("exact variant");
+  await expect(statistics).toContainText("Shipping and extras are excluded");
   await expect(page.locator(".product-description h2")).toContainText("iPhone 17");
   const panel = page.locator(".offer-comparison");
   for (const store of ["Flipkart", "Amazon", "iPlanet", "Imagine"]) {
@@ -46,4 +56,5 @@ test("actual iPhone link includes automatic reseller discovery and honest availa
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(errors).toEqual([]);
   await panel.screenshot({ path: info.outputPath("actual-iphone-stores.png"), style: ".site-header, .skip-link { visibility: hidden !important; }" });
+  await statistics.screenshot({ path: info.outputPath("actual-iphone-statistics.png"), style: ".site-header, .skip-link { visibility: hidden !important; }" });
 });

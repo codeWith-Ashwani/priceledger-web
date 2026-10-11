@@ -9,7 +9,15 @@ import {
 } from "lucide-react";
 import type { ComparisonScan, ProductDetail } from "../api";
 import { rupees } from "../format";
-import { amount, comparisonOffers, rankOffers, type PriceBasis } from "../offers";
+import {
+  amount,
+  comparisonOffers,
+  filterOffers,
+  rankOffers,
+  sortOffers,
+  type OfferSort,
+  type PriceBasis,
+} from "../offers";
 import ProductImage from "./ProductImage";
 import "./OfferCards.css";
 
@@ -44,8 +52,31 @@ export default function OfferCards({
 }) {
   const [basis, setBasis] = useState<PriceBasis>("item");
   const [scope, setScope] = useState<"model" | "exact">("model");
+  const [available, setAvailable] = useState(false);
+  const [store, setStore] = useState("");
+  const [storage, setStorage] = useState("");
+  const [sort, setSort] = useState<OfferSort>("price");
+  const all = comparisonOffers(
+    product.offers,
+    scan?.model_offers,
+    scope === "model",
+  ).filter((offer) => offer.channel === "online");
+  const stores = [
+    ...new Map(
+      all.map((offer) => [offer.retailer_id, offer.retailer_name]),
+    ).entries(),
+  ].sort((a, b) => a[1].localeCompare(b[1]));
+  const capacities = [
+    ...new Set(
+      all
+        .map((offer) => offer.variant_attributes?.storage_gb)
+        .filter((value) => value !== undefined)
+        .map(String),
+    ),
+  ].sort((a, b) => Number(a) - Number(b));
+  const filtered = available || !!store || !!storage;
   const ranked = rankOffers(
-    comparisonOffers(product.offers, scan?.model_offers, scope === "model"),
+    filterOffers(all, available, store, storage),
     basis,
   );
   const names = [
@@ -65,7 +96,8 @@ export default function OfferCards({
           <span className="eyebrow">SAME BRAND · SAME MODEL</span>
           <h3 id="offer-cards-title">Find your best price.</h3>
           <p>
-            All verified offers from connected stores. Colour, memory and size may differ.
+            All verified offers from connected stores. Colour, memory and size
+            may differ.
           </p>
         </div>
         <button className="text-button" disabled={pending} onClick={refresh}>
@@ -110,6 +142,88 @@ export default function OfferCards({
           </button>
         </div>
       </div>
+      <div className="offer-filters">
+        <label>
+          Store
+          <select
+            aria-label="Store"
+            value={store}
+            onChange={(event) => setStore(event.target.value)}
+          >
+            <option value="">All stores</option>
+            {store && !stores.some(([id]) => id === store) && (
+              <option value={store}>
+                Selected store · no offers in this scope
+              </option>
+            )}
+            {stores.map(([id, name]) => (
+              <option key={id} value={id}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </label>
+        {(capacities.length > 0 || storage) && (
+          <label>
+            Storage
+            <select
+              aria-label="Storage"
+              value={storage}
+              onChange={(event) => setStorage(event.target.value)}
+            >
+              <option value="">All capacities</option>
+              {storage && !capacities.includes(storage) && (
+                <option value={storage}>
+                  {storage} GB · no offers in this scope
+                </option>
+              )}
+              {capacities.map((value) => (
+                <option key={value} value={value}>
+                  {value} GB
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+        <label>
+          Sort offers
+          <select
+            aria-label="Sort offers"
+            value={sort}
+            onChange={(event) => setSort(event.target.value as OfferSort)}
+          >
+            <option value="price">Lowest price</option>
+            <option value="rating">Highest store rating</option>
+            <option value="recent">Recently checked</option>
+          </select>
+        </label>
+        <label className="offer-checkbox">
+          <input
+            type="checkbox"
+            checked={available}
+            onChange={(event) => setAvailable(event.target.checked)}
+          />
+          Available and fresh only
+        </label>
+        {filtered && (
+          <button
+            className="text-button"
+            onClick={() => {
+              setAvailable(false);
+              setStore("");
+              setStorage("");
+            }}
+          >
+            Reset filters
+          </button>
+        )}
+      </div>
+      {filtered && (
+        <p className="cross-store-footnote">
+          Showing {ranked.sorted.length} of {all.length} offers. Lowest-price
+          badges apply to these filters.
+        </p>
+      )}
       <div className="offer-recommendation" role="status">
         <TrendingDown size={22} />
         <div>
@@ -119,7 +233,11 @@ export default function OfferCards({
               : `${names.join(" & ")} · ${rupees(ranked.lowest)}`}
           </strong>
           <p>
-            {scope === "model" ? "Among checked model variants. " : "Among exact variants. "}
+            {filtered
+              ? "Among filtered offers. "
+              : scope === "model"
+                ? "Among checked model variants. "
+                : "Among exact variants. "}
             {ranked.lowest === null
               ? "Unavailable, outdated or incomplete offers cannot win the comparison."
               : ranked.comparableStores === 1
@@ -131,7 +249,8 @@ export default function OfferCards({
                   ranked.availableStores > ranked.comparableStores
                 ? " Stores with unknown delivery are excluded from this total comparison."
                 : ""}
-            {basis === "delivered" && " Includes item price, known shipping and listed fees. Other checkout charges may remain unknown."}
+            {basis === "delivered" &&
+              " Includes item price, known shipping and listed fees. Other checkout charges may remain unknown."}
           </p>
         </div>
         {pending && (
@@ -141,7 +260,7 @@ export default function OfferCards({
         )}
       </div>
       <div className="offer-card-grid">
-        {ranked.sorted.map((offer) => {
+        {sortOffers(ranked.sorted, sort).map((offer) => {
           const winner = ranked.winners.has(offer.id);
           const price = amount(offer, basis);
           return (
@@ -235,30 +354,46 @@ export default function OfferCards({
               {offer.listed_fees?.length ? (
                 <dl className="offer-price-details">
                   {offer.listed_fees.map((fee) => (
-                    <div key={fee.label}><dt>{fee.label}</dt><dd>{rupees(fee.amount_paise)}</dd></div>
+                    <div key={fee.label}>
+                      <dt>{fee.label}</dt>
+                      <dd>{rupees(fee.amount_paise)}</dd>
+                    </div>
                   ))}
                 </dl>
-              ) : <p className="offer-seller">Extra fees not confirmed</p>}
+              ) : (
+                <p className="offer-seller">Extra fees not confirmed</p>
+              )}
               {basis === "delivered" && offer.shipping_paise !== null && (
-                <p className="offer-seller">Delivery: {offer.shipping_paise === 0 ? "Free" : rupees(offer.shipping_paise)}</p>
+                <p className="offer-seller">
+                  Delivery:{" "}
+                  {offer.shipping_paise === 0
+                    ? "Free"
+                    : rupees(offer.shipping_paise)}
+                </p>
               )}
               <p className="offer-identity">
                 <ShieldCheck size={13} />{" "}
-                {offer.match_scope === "model" ? "Same model · check variant" : "Exact variant"}
+                {offer.match_scope === "model"
+                  ? "Same model · check variant"
+                  : "Exact variant"}
                 {" · "}
-                {offer.condition === "unknown" ? "Condition not confirmed" : offer.condition}
+                {offer.condition === "unknown"
+                  ? "Condition not confirmed"
+                  : offer.condition}
               </p>
               {offer.match_scope === "model" && (
                 <p className="offer-seller">
                   {offer.differences?.length
                     ? offer.differences
-                        .map((difference) =>
-                          `${attributeNames[difference.attribute] ?? difference.attribute}: ${difference.offered} (requested ${difference.requested})`,
+                        .map(
+                          (difference) =>
+                            `${attributeNames[difference.attribute] ?? difference.attribute}: ${difference.offered} (requested ${difference.requested})`,
                         )
                         .join(" · ")
-                    : "Some variant details are not confirmed."}
-                  {" "}
-                  <a href={`/?product=${encodeURIComponent(offer.product_id ?? product.id)}`}>
+                    : "Some variant details are not confirmed."}{" "}
+                  <a
+                    href={`/?product=${encodeURIComponent(offer.product_id ?? product.id)}`}
+                  >
                     This variant’s history
                   </a>
                 </p>
@@ -286,6 +421,12 @@ export default function OfferCards({
           );
         })}
       </div>
+      {filtered && ranked.sorted.length === 0 && (
+        <p role="status">
+          No recorded offers match these filters. Reset filters to see all
+          offers.
+        </p>
+      )}
       {error && (
         <p className="cross-store-status" role="alert">
           {error} Your recorded offers are still shown.
@@ -313,24 +454,30 @@ export default function OfferCards({
                     ? "Verified match"
                     : store.status === "model_match"
                       ? "Same model · variants may differ"
-                    : store.status === "different_variant"
-                      ? "Different variant"
-                      : store.status === "review"
-                        ? "Variant needs verification"
-                        : store.status === "retailer_blocked"
-                          ? "Store blocked access"
-                          : store.status === "collection_limited"
-                            ? "Retry cooldown active"
-                            : store.status === "no_matches"
-                              ? "No readable candidates"
-                              : "No verified offer"}
+                      : store.status === "different_variant"
+                        ? "Different variant"
+                        : store.status === "review"
+                          ? "Variant needs verification"
+                          : store.status === "retailer_blocked"
+                            ? "Store blocked access"
+                            : store.status === "collection_limited"
+                              ? "Retry cooldown active"
+                              : store.status === "no_matches"
+                                ? "No readable candidates"
+                                : "No verified offer"}
                 </span>
               </div>
               <p>{store.message}</p>
               {store.items
-                .filter((item) => !["verified", "model_match"].includes(item.match_status))
+                .filter(
+                  (item) =>
+                    !["verified", "model_match"].includes(item.match_status),
+                )
                 .map((item) => (
-                  <article className="possible-match" key={`${item.product_id}:${item.url}`}>
+                  <article
+                    className="possible-match"
+                    key={`${item.product_id}:${item.url}`}
+                  >
                     <div>
                       <strong>{item.title}</strong>
                       <p>
@@ -353,10 +500,11 @@ export default function OfferCards({
       )}
       <p className="cross-store-footnote">
         Prices and ratings come from the named store’s last readable check.
-        Model matches can differ in colour, memory or size. Check the winning variant before buying.
-        Price history and discount analysis below cover the exact variant only.
-        Known subtotals include only observed charges. Confirm the final checkout total at the store.
-        Missing stores are never filled with guessed prices.
+        Model matches can differ in colour, memory or size. Check the winning
+        variant before buying. Price history and discount analysis below cover
+        the exact variant only. Known subtotals include only observed charges.
+        Confirm the final checkout total at the store. Missing stores are never
+        filled with guessed prices.
       </p>
     </section>
   );

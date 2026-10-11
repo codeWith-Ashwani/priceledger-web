@@ -4,19 +4,17 @@ import {
   ArrowDownRight,
   ArrowRight,
   ArrowUpRight,
-  Bell,
   Bookmark,
   Check,
   ShieldCheck,
-  X,
 } from "lucide-react";
 import type { Product } from "./api";
-import { rupees } from "./format";
 import { readWatches, saveWatches } from "./watchlist";
 import LookupPanel from "./components/LookupPanel";
 import Comparison from "./components/Comparison";
 import MethodDialog from "./components/MethodDialog";
 import WatchDialog from "./components/WatchDialog";
+import TargetCard from "./components/TargetCard";
 
 const HistoryImportAdmin = lazy(
   () => import("./components/HistoryImportAdmin"),
@@ -63,6 +61,7 @@ function ConsumerApp() {
   function selectProduct(id: string, scroll = false) {
     void queryClient.invalidateQueries({ queryKey: ["product", id] });
     void queryClient.invalidateQueries({ queryKey: ["history", id] });
+    void queryClient.invalidateQueries({ queryKey: ["insights", id] });
     void queryClient.invalidateQueries({ queryKey: ["assessment", id] });
     setSelectedId(id);
     setView("explore");
@@ -173,7 +172,8 @@ function ConsumerApp() {
             <span className="eyebrow">A little patience can pay</span>
             <h1>Your price targets.</h1>
             <p className="intro-copy">
-              Saved on this browser. External notifications aren’t enabled yet.
+              Latest recorded prices are checked when you open this list. Saved
+              on this browser. External notifications aren’t enabled yet.
             </p>
             {watches.length === 0 ? (
               <div className="empty-state">
@@ -192,30 +192,12 @@ function ConsumerApp() {
             ) : (
               <div className="target-list">
                 {watches.map((watch) => (
-                  <article className="target-card" key={watch.productId}>
-                    <span className="target-icon">
-                      <Bell size={19} />
-                    </span>
-                    <div>
-                      <h2>{watch.title}</h2>
-                      <p>
-                        Target <strong>{rupees(watch.targetPaise)}</strong>
-                      </p>
-                    </div>
-                    <button
-                      className="button secondary"
-                      onClick={() => selectProduct(watch.productId)}
-                    >
-                      View history <ArrowUpRight size={15} />
-                    </button>
-                    <button
-                      className="icon-button"
-                      onClick={() => removeTarget(watch.productId)}
-                      aria-label={`Remove target for ${watch.title}`}
-                    >
-                      <X size={18} />
-                    </button>
-                  </article>
+                  <TargetCard
+                    key={watch.productId}
+                    watch={watch}
+                    onView={() => selectProduct(watch.productId)}
+                    onRemove={() => removeTarget(watch.productId)}
+                  />
                 ))}
               </div>
             )}

@@ -63,6 +63,16 @@ The history ledger lists the precise India date/time, retailer, online/offline c
 
 The coverage panel shows aggregate observed days, evidence counts, first/latest prices and collection status for each verified offer. It distinguishes a failed latest check from the last valid price and shows when a queued check becomes eligible; the backend worker must run for future collection. Charts break at failed checks, and the ledger labels page checks versus historical imports. Expand price evidence to inspect the variant and seller context retained at that observation. Legacy records do not acquire invented snapshots. Coverage does not assert complete launch history; no historical provider is connected yet.
 
+## Recorded insights, offer filters and targets
+
+The chart's selected period also controls recorded low/high item prices and their store/date, plus the average daily best available exact-variant item price. Observed-day counts and missing-day notes explain limited coverage. The average weights India calendar days equally, selecting own checks ahead of overlapping approved archives. It excludes shipping, listed extras and unobserved days. This statistic differs from the existing 30-day median delivered-price assessment; neither predicts a future price. A statistics error has its own retry and does not hide the chart or offers.
+
+Offer filters support store, verified storage capacity when present, and fresh available stock. All offers remain visible by default. Reset restores the full set. Lowest-price recommendations recalculate within the selected filters; labels state that scope. Sorting supports eligible lowest price, normalized store product rating and most recent check. Missing capacities/ratings are never guessed. Store ratings are retailer-provided product ratings, not PriceLedger seller scores.
+
+Opening **My targets** fetches the latest recorded exact-variant offers and shows **Target reached**, the amount above target, or an unconfirmed status. Targets compare available fresh online item + shipping, excluding listed extras and other variants. Existing browser targets retain their format. This is an in-app status check, not an outbound notification service or a guarantee that the retailer still offers that price. Email/push delivery, accounts and cross-device sync remain future work.
+
+`tests/browser/competitor-features.spec.ts` covers filtering, winner recalculation, period-linked statistics and target availability using intercepted browser responses only. For an isolated API, set `PRICELEDGER_TEST_API_URL` to its `/api/v1` base; the default is localhost port 8000. Test fixtures never enter the application's catalog.
+
 ## Historical file imports
 
 Open `/?admin=imports` to access the owner workspace. The API must have `PRICELEDGER_ADMIN_TOKEN` configured; all import/source/listing endpoints require `X-Admin-Token` and remain disabled without it. Enter the token in the workspace. It is held only in component memory, never URL/local/session storage, and is cleared on disconnect or reload. Never put an admin token in Vite environment variables or source code. Use HTTPS when operating beyond localhost.

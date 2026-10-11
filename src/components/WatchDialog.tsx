@@ -86,8 +86,10 @@ export default function WatchDialog({
           </p>
         )}
         <small id="watch-help">
-          Current recorded total: {rupees(product.best_price_paise)}. Targets
-          are saved on this browser. Email and push alerts are planned.
+          Current recorded item + shipping: {rupees(product.best_price_paise)}.
+          Targets use the exact variant’s online item + shipping price; listed
+          extras are excluded. Saved on this browser. Email and push alerts are
+          not enabled.
         </small>
         <button className="button primary full" type="submit">
           Save target <Bell size={16} />

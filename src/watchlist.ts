@@ -1,3 +1,25 @@
+import type { Offer } from "./api";
+
+export function targetProgress(targetPaise: number, offers: Offer[]) {
+  const best = offers
+    .filter(
+      (offer) =>
+        offer.channel === "online" &&
+        offer.match_scope !== "model" &&
+        offer.in_stock &&
+        !offer.stale &&
+        offer.total_paise !== null,
+    )
+    .sort((a, b) => a.total_paise! - b.total_paise!)[0];
+  return best
+    ? {
+        best,
+        reached: best.total_paise! <= targetPaise,
+        remaining: Math.max(0, best.total_paise! - targetPaise),
+      }
+    : null;
+}
+
 export interface Watch {
   productId: string;
   title: string;

@@ -20,6 +20,7 @@ export interface ListedFee {
 }
 
 export interface Offer {
+  variant_attributes?: Record<string, string | number | boolean>;
   listed_fees?: ListedFee[] | null;
   known_subtotal_paise?: number | null;
   match_scope?: "model";
@@ -133,6 +134,33 @@ export interface Assessment {
   retailer_name: string | null;
   is_demo: boolean;
   advertised_discount_percent: number | null;
+}
+
+export interface PriceMilestone {
+  price_paise: number;
+  observed_at: string;
+  retailer_name: string;
+  source_name: string;
+  offer_id: string;
+}
+
+export interface PriceInsights {
+  product_id: string;
+  days: number;
+  scope: "exact_variant";
+  price_basis: "item" | "delivered";
+  low: PriceMilestone | null;
+  high: PriceMilestone | null;
+  current: PriceMilestone | null;
+  daily_average_paise: number | null;
+  observed_days: number;
+  observations: number;
+  coverage_start: string | null;
+  coverage_end: string | null;
+  above_recorded_low_paise: number | null;
+  method: string;
+  source_policy: string;
+  history_note: string;
 }
 
 export interface HistoryCoverage {
@@ -286,6 +314,11 @@ export const api = {
   history: (id: string, days: number, signal?: AbortSignal) =>
     get<PriceHistory>(
       `/products/${encodeURIComponent(id)}/history?days=${days}&basis=item`,
+      signal,
+    ),
+  insights: (id: string, days: number, signal?: AbortSignal) =>
+    get<PriceInsights>(
+      `/products/${encodeURIComponent(id)}/insights?days=${days}&basis=item`,
       signal,
     ),
   assessment: (id: string, signal?: AbortSignal) =>

@@ -19,6 +19,7 @@ import HistoryChart from "./HistoryChart";
 import HistoryLedger from "./HistoryLedger";
 import HistoryCoverage from "./HistoryCoverage";
 import OfferCards from "./OfferCards";
+import PriceInsights from "./PriceInsights";
 
 const labels = {
   below_usual: "Below the usual price",
@@ -50,6 +51,10 @@ export default function Comparison({
     queryKey: ["assessment", productId],
     queryFn: ({ signal }) => api.assessment(productId, signal),
   });
+  const insights = useQuery({
+    queryKey: ["insights", productId, days],
+    queryFn: ({ signal }) => api.insights(productId, days, signal),
+  });
   const coverage = useQuery({
     queryKey: ["coverage", productId],
     queryFn: ({ signal }) => api.coverage(productId, signal),
@@ -66,6 +71,7 @@ export default function Comparison({
     if (!comparison.data) return;
     void queryClient.invalidateQueries({ queryKey: ["product", productId] });
     void queryClient.invalidateQueries({ queryKey: ["history", productId] });
+    void queryClient.invalidateQueries({ queryKey: ["insights", productId] });
     void queryClient.invalidateQueries({ queryKey: ["assessment", productId] });
     void queryClient.invalidateQueries({ queryKey: ["coverage", productId] });
   }, [comparison.data, productId, queryClient]);
@@ -161,7 +167,9 @@ export default function Comparison({
                 </span>
                 <strong>
                   {rupees(
-                    best ? amount(best, "delivered") : (listed?.item_paise ?? null),
+                    best
+                      ? amount(best, "delivered")
+                      : (listed?.item_paise ?? null),
                   )}
                 </strong>
                 <p>
@@ -215,28 +223,7 @@ export default function Comparison({
                     ))}
                   </div>
                 </div>
-                <div className="history-stats">
-                  <div>
-                    <span>
-                      Recorded low · {assessment?.retailer_name ?? "—"} · 1Y
-                    </span>
-                    <strong>
-                      {rupees(assessment?.recorded_low_paise ?? null)}
-                    </strong>
-                  </div>
-                  <div>
-                    <span>Usual reference price</span>
-                    <strong>
-                      {rupees(assessment?.baseline_paise ?? null)}
-                    </strong>
-                  </div>
-                  <div>
-                    <span>Latest item + shipping</span>
-                    <strong className="green">
-                      {rupees(product.best_price_paise)}
-                    </strong>
-                  </div>
-                </div>
+                <PriceInsights query={insights} />
                 {history.isPending ? (
                   <div className="loading-state" role="status">
                     <span className="spinner" />
@@ -301,8 +288,8 @@ export default function Comparison({
                       </h4>
                       <p>
                         Compared with recorded item + shipping prices at{" "}
-                        {assessment.retailer_name ?? "a matching store"}.
-                        Listed extras are excluded from this historical assessment.
+                        {assessment.retailer_name ?? "a matching store"}. Listed
+                        extras are excluded from this historical assessment.
                       </p>
                       <div className="discount-comparison">
                         <div>
