@@ -65,7 +65,7 @@ export default function OfferCards({
           <span className="eyebrow">SAME BRAND · SAME MODEL</span>
           <h3 id="offer-cards-title">Find your best price.</h3>
           <p>
-            Compare this model across stores. Colour, memory and size may differ.
+            All verified offers from connected stores. Colour, memory and size may differ.
           </p>
         </div>
         <button className="text-button" disabled={pending} onClick={refresh}>

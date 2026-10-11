@@ -26,9 +26,11 @@ test("actual iPhone link includes automatic reseller discovery and honest availa
       (image: HTMLImageElement) => image.complete && image.naturalWidth > 0,
     )).toBe(true);
   }
-  await expect(panel).toContainText("4 stores matched");
   await expect(panel).not.toContainText("AppleCare");
   const offers = [...detail.offers, ...scan.model_offers];
+  const storeCount = new Set(offers.map(offer => offer.retailer_id)).size;
+  expect(storeCount).toBeGreaterThanOrEqual(4);
+  await expect(panel).toContainText(`${storeCount} stores matched`);
   const available = offers.filter(offer => offer.channel === "online" && offer.in_stock && !offer.stale && offer.item_paise !== null);
   const minimum = Math.min(...available.map(offer => offer.item_paise!));
   for (const offer of offers) {
