@@ -1,3 +1,5 @@
+import { comparisonError } from "./comparisonRetry";
+
 export interface Product {
   id: string;
   title: string;
@@ -274,10 +276,11 @@ export const api = {
     );
     const data = await response.json();
     if (!response.ok)
-      throw new Error(
+      throw comparisonError(
         typeof data.detail === "string"
           ? data.detail
           : (data.detail?.message ?? "Other stores could not be checked."),
+        response,
       );
     return data as ComparisonScan;
   },

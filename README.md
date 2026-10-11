@@ -29,6 +29,8 @@ Same-model cards may differ in colour, RAM, storage or size; known differences a
 
 Blocked pages, cooldowns, unknown prices/ratings and uncertain identities stay explicit. Missing cards do not prove a retailer lacks stock. Additional stores depend on backend adapters, readable evidence and source permissions; this is not universal internet discovery.
 
+When another request is scanning the same product, comparison automatically retries at most three times using the API's numeric `Retry-After` delay (up to 15 seconds each). Recorded offers remain visible while waiting. Persistent conflicts show a retry control; other failures and source quotas are not automatically retried. Leaving the product cancels pending comparison recovery.
+
 ## Understanding prices
 
 | Display | Price basis |
@@ -77,7 +79,7 @@ npm run test:e2e
 
 Live regressions require the genuine listings referenced in the browser tests to have been looked up in the test API first. They depend on retailer readability/stock and are separate from deterministic unit CI. Explicit intercepted contracts cover sorting, filters, ranking, targets and failures without inserting synthetic offers into storage.
 
-Run the genuine same-product desktop/mobile regression serially with `npm run test:e2e -- tests/browser/apple-discovery.spec.ts --workers=1`. Concurrent scans of one product can receive the API's intentional 409 lease-conflict response.
+Run the genuine same-product desktop/mobile regression serially with `npm run test:e2e -- tests/browser/apple-discovery.spec.ts --workers=1` for deterministic source checks. Concurrent scans can receive the API's intentional 409 lease-conflict response; separate controlled browser tests verify bounded automatic recovery.
 
 Use a separate database and temporary quota overrides for a large suite. `PRICELEDGER_TEST_API_URL` configures the direct test API base for competitor-feature contracts; it defaults to localhost port 8000 plus `/api/v1`. Keep that value consistent with Vite's API base. Genuine import checks additionally require `PRICELEDGER_QA_API_BASE`, a temporary `PRICELEDGER_QA_ADMIN_TOKEN` and an evidence file at `PRICELEDGER_QA_HISTORY_FILE`; without them, source-dependent import checks are skipped.
 
@@ -85,7 +87,7 @@ Use a separate database and temporary quota overrides for a large suite. `PRICEL
 
 | Files | Responsibility |
 | --- | --- |
-| `src/api.ts`, `src/adminApi.ts` | Typed public/admin API clients |
+| `src/api.ts`, `src/adminApi.ts`, `src/comparisonRetry.ts` | Typed API clients and bounded busy-response recovery |
 | `LookupPanel`, `Comparison`, `OfferCards` | User-driven lookup and cross-store comparison |
 | `HistoryChart`, `HistoryLedger`, `HistoryCoverage`, `PriceInsights` | Dated evidence, coverage and recorded statistics |
 | `TargetCard`, `WatchDialog`, `src/watchlist.ts` | Local targets and progress |

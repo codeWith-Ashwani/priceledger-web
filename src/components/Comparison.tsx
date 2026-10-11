@@ -14,6 +14,7 @@ import { api } from "../api";
 import type { Product } from "../api";
 import { rupees, shortDate, titleCase } from "../format";
 import { amount } from "../offers";
+import { comparisonRetryDelay, retryComparison } from "../comparisonRetry";
 import ProductImage from "./ProductImage";
 import HistoryChart from "./HistoryChart";
 import HistoryLedger from "./HistoryLedger";
@@ -65,7 +66,8 @@ export default function Comparison({
     queryFn: ({ signal }) => api.comparison(productId, signal),
     enabled: !!detail.data,
     staleTime: 15 * 60_000,
-    retry: false,
+    retry: retryComparison,
+    retryDelay: comparisonRetryDelay,
   });
   useEffect(() => {
     if (!comparison.data) return;

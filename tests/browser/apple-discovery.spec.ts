@@ -11,7 +11,7 @@ test("actual iPhone link includes automatic reseller discovery and honest availa
     /\/products\/flipkart(?::|%3A)MOBHQV9YDG7CGRAM$/.test(response.url()),
   );
   const scanResponse = page.waitForResponse(response =>
-    response.url().includes("MOBHQV9YDG7CGRAM/compare") && response.request().method() === "POST",
+    response.ok() && response.url().includes("MOBHQV9YDG7CGRAM/compare") && response.request().method() === "POST",
     { timeout: 90000 },
   );
   const insightsResponse = page.waitForResponse(response =>
