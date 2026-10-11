@@ -180,7 +180,7 @@ export default function Comparison({
               </div>
             </div>
             <OfferCards
-              key={productId}
+              key={`offers:${productId}`}
               product={product}
               scan={comparison.data}
               pending={comparison.isFetching}

@@ -14,6 +14,12 @@ export interface Product {
 }
 
 export interface Offer {
+  match_scope?: "model";
+  differences?: {
+    attribute: string;
+    requested: string | number | boolean;
+    offered: string | number | boolean;
+  }[];
   product_id?: string;
   title?: string;
   image_url?: string | null;
@@ -176,6 +182,7 @@ export interface SearchStore {
 }
 
 export interface ComparisonScan {
+  model_offers?: Offer[];
   product_id: string;
   checked_at: string;
   cached: boolean;
@@ -192,7 +199,7 @@ export interface ComparisonScan {
       image_url?: string | null;
       rating?: Offer["rating"];
       url: string;
-      item_paise: number;
+      item_paise: number | null;
       shipping_paise: number | null;
       availability: string;
       condition: string;

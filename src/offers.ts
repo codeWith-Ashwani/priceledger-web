@@ -2,6 +2,20 @@ import type { Offer } from "./api";
 
 export type PriceBasis = "item" | "delivered";
 
+export function comparisonOffers(
+  exact: Offer[],
+  model: Offer[] = [],
+  includeModel = true,
+): Offer[] {
+  const offers = new Map(exact.map((offer) => [offer.id, offer]));
+  if (includeModel) {
+    for (const offer of model) {
+      if (!offers.has(offer.id)) offers.set(offer.id, offer);
+    }
+  }
+  return [...offers.values()];
+}
+
 export function amount(offer: Offer, basis: PriceBasis): number | null {
   return basis === "item" ? offer.item_paise : offer.total_paise;
 }

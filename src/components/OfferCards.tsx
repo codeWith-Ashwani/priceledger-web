@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import type { ComparisonScan, ProductDetail } from "../api";
 import { rupees } from "../format";
-import { amount, rankOffers, type PriceBasis } from "../offers";
+import { amount, comparisonOffers, rankOffers, type PriceBasis } from "../offers";
 import ProductImage from "./ProductImage";
 import "./OfferCards.css";
 
@@ -19,6 +19,15 @@ const checked = (value: string) =>
     dateStyle: "medium",
     timeStyle: "short",
   });
+
+const attributeNames: Record<string, string> = {
+  color: "Colour",
+  ram_gb: "RAM (GB)",
+  storage_gb: "Storage (GB)",
+  size: "Size",
+  pack: "Pack",
+  mpn: "Part number",
+};
 
 export default function OfferCards({
   product,
@@ -34,7 +43,11 @@ export default function OfferCards({
   refresh: () => void;
 }) {
   const [basis, setBasis] = useState<PriceBasis>("item");
-  const ranked = rankOffers(product.offers, basis);
+  const [scope, setScope] = useState<"model" | "exact">("model");
+  const ranked = rankOffers(
+    comparisonOffers(product.offers, scan?.model_offers, scope === "model"),
+    basis,
+  );
   const names = [
     ...new Set(
       ranked.sorted
@@ -49,15 +62,31 @@ export default function OfferCards({
     >
       <div className="panel-heading">
         <div>
-          <span className="eyebrow">ONE PRODUCT · EVERY VERIFIED OFFER</span>
+          <span className="eyebrow">SAME BRAND · SAME MODEL</span>
           <h3 id="offer-cards-title">Find your best price.</h3>
-          <p>Same brand, model and variant. Compare everything here.</p>
+          <p>
+            Compare this model across stores. Colour, memory and size may differ.
+          </p>
         </div>
         <button className="text-button" disabled={pending} onClick={refresh}>
           <RefreshCw size={14} /> Check stores again
         </button>
       </div>
       <div className="offer-controls">
+        <div className="price-basis" role="group" aria-label="Match scope">
+          <button
+            aria-pressed={scope === "model"}
+            onClick={() => setScope("model")}
+          >
+            Same model
+          </button>
+          <button
+            aria-pressed={scope === "exact"}
+            onClick={() => setScope("exact")}
+          >
+            Exact variant
+          </button>
+        </div>
         <span>
           {ranked.storeCount} {ranked.storeCount === 1 ? "store" : "stores"}{" "}
           matched
@@ -90,6 +119,7 @@ export default function OfferCards({
               : `${names.join(" & ")} · ${rupees(ranked.lowest)}`}
           </strong>
           <p>
+            {scope === "model" ? "Among checked model variants. " : "Among exact variants. "}
             {ranked.lowest === null
               ? "Unavailable, outdated or incomplete offers cannot win the comparison."
               : ranked.comparableStores === 1
@@ -202,8 +232,26 @@ export default function OfferCards({
                 </div>
               </dl>
               <p className="offer-identity">
-                <ShieldCheck size={13} /> Exact variant · {offer.condition}
+                <ShieldCheck size={13} />{" "}
+                {offer.match_scope === "model" ? "Same model · check variant" : "Exact variant"}
+                {" · "}
+                {offer.condition === "unknown" ? "Condition not confirmed" : offer.condition}
               </p>
+              {offer.match_scope === "model" && (
+                <p className="offer-seller">
+                  {offer.differences?.length
+                    ? offer.differences
+                        .map((difference) =>
+                          `${attributeNames[difference.attribute] ?? difference.attribute}: ${difference.offered} (requested ${difference.requested})`,
+                        )
+                        .join(" · ")
+                    : "Some variant details are not confirmed."}
+                  {" "}
+                  <a href={`/?product=${encodeURIComponent(offer.product_id ?? product.id)}`}>
+                    This variant’s history
+                  </a>
+                </p>
+              )}
               <p className="offer-seller">
                 {offer.seller} · {offer.region}
               </p>
@@ -252,6 +300,8 @@ export default function OfferCards({
                 <span className={`match-status ${store.status}`}>
                   {store.status === "verified"
                     ? "Verified match"
+                    : store.status === "model_match"
+                      ? "Same model · variants may differ"
                     : store.status === "different_variant"
                       ? "Different variant"
                       : store.status === "review"
@@ -267,9 +317,9 @@ export default function OfferCards({
               </div>
               <p>{store.message}</p>
               {store.items
-                .filter((item) => item.match_status !== "verified")
+                .filter((item) => !["verified", "model_match"].includes(item.match_status))
                 .map((item) => (
-                  <article className="possible-match" key={item.product_id}>
+                  <article className="possible-match" key={`${item.product_id}:${item.url}`}>
                     <div>
                       <strong>{item.title}</strong>
                       <p>
@@ -292,9 +342,10 @@ export default function OfferCards({
       )}
       <p className="cross-store-footnote">
         Prices and ratings come from the named store’s last readable check.
-        Three or four offers appear when that many exact matches are available;
-        missing stores and different variants are never filled with guessed
-        prices.
+        Model matches can differ in colour, memory or size. Check the winning variant before buying.
+        Price history and discount analysis below cover the exact variant only.
+        Checkout or protection fees may be extra; confirm the final total at the store.
+        Missing stores are never filled with guessed prices.
       </p>
     </section>
   );

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { rankOffers } from "./offers";
+import { comparisonOffers, rankOffers } from "./offers";
 import type { Offer } from "./api";
 
 const offer = (
@@ -29,6 +29,14 @@ const offer = (
 });
 
 describe("verified offer ranking", () => {
+  it("deduplicates model alternatives and restores exact ranking on request", () => {
+    const original = offer("exact", 3000);
+    const related = offer("variant", 2000, {match_scope: "model"});
+    const model = comparisonOffers([original], [related, {...original, item_paise: 100}]);
+    expect(model).toHaveLength(2);
+    expect(rankOffers(model, "item").lowest).toBe(2000);
+    expect(rankOffers(comparisonOffers([original], [related], false), "item").lowest).toBe(3000);
+  });
   it("excludes stale, unavailable and offline quotes from current online winners", () => {
     const ranked = rankOffers(
       [

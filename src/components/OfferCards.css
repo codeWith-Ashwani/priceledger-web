@@ -17,6 +17,7 @@
   margin: 22px 0 16px;
   font-size: 12px;
   color: var(--muted);
+  flex-wrap: wrap;
 }
 .price-basis {
   display: flex;

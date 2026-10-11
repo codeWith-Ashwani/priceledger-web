@@ -31,6 +31,11 @@ test("looks up the user's actual link with dated Flipkart evidence", async ({
 }, info) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
+  page.on("console", (message) => {
+    if (message.type() === "error" && message.text().includes("same key")) {
+      errors.push(message.text());
+    }
+  });
   await page.goto("/");
   await page
     .getByRole("textbox", { name: "Product link or brand and model" })
@@ -266,7 +271,7 @@ test("actual iQOO listing compares Amazon with the exact official-store SKU", as
   const official = page.getByRole("article", {
     name: "iQOO Official Store offer",
     exact: true,
-  });
+  }).filter({ hasText: "4GB+128GB Solar Flame" });
   await expect(official).toBeVisible({ timeout: 45000 });
   await expect(official.getByRole("heading")).toContainText(
     "4GB+128GB Solar Flame",
@@ -290,11 +295,9 @@ test("actual iQOO listing compares Amazon with the exact official-store SKU", as
   await expect(
     page.getByRole("article", { name: "Amazon offer", exact: true }),
   ).toBeVisible();
-  const checks = page.locator(".store-check-details");
-  await checks.locator("summary").click();
-  await expect(checks).toContainText(
-    "a shared manufacturer identifier is needed",
-  );
+  await page.getByRole("button", { name: "Exact variant", exact: true }).click();
+  await expect(official).toBeVisible();
+  await expect(page.locator(".offer-recommendation")).toContainText("Among exact variants.");
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
@@ -304,6 +307,55 @@ test("actual iQOO listing compares Amazon with the exact official-store SKU", as
     path: info.outputPath("actual-iqoo-offers.png"),
     style: ".site-header, .skip-link { visibility: hidden !important; }",
   });
+});
+
+test("model scope ranks labelled variants without changing exact history", async ({ page }) => {
+  // Controlled comparison payload only; no synthetic prices enter persistent storage.
+  await page.route("**/api/v1/products/*/compare", async (route) => {
+    const response = await page.request.get(route.request().url().replace(/\/compare$/, ""));
+    const detail = await response.json();
+    await route.fulfill({ json: {
+      product_id: productId,
+      stores: [],
+      checked_at: new Date().toISOString(),
+      cached: false,
+      history_note: "Controlled model comparison contract",
+      model_offers: [{
+        ...detail.offers[0],
+        id: "controlled-model-offer",
+        product_id: "controlled-model-variant",
+        retailer_id: "controlled",
+        retailer_name: "Variant store",
+        title: "Nothing Phone (4a) (Red, 256 GB)",
+        match_scope: "model",
+        differences: [{ attribute: "storage_gb", requested: 128, offered: 256 }],
+        item_paise: 1000000,
+        shipping_paise: null,
+        total_paise: null,
+        in_stock: true,
+        availability: "in_stock",
+        stale: false,
+        observed_at: new Date().toISOString(),
+      }],
+    }});
+  });
+  await page.goto(productRoute);
+  const variant = page.getByRole("article", { name: "Variant store offer", exact: true });
+  await expect(variant).toBeVisible();
+  await expect(variant).toContainText("Storage (GB): 256 (requested 128)");
+  await expect(variant.getByRole("link", { name: "This variant’s history" }))
+    .toHaveAttribute("href", "/?product=controlled-model-variant");
+  await expect(page.locator(".offer-recommendation")).toContainText("Variant store · ₹10,000");
+  await expect(page.locator(".offers-panel tbody tr")).toHaveCount(1);
+  await expect(page.locator(".chart-legend")).not.toContainText("Variant store");
+  await page.getByRole("button", { name: "Exact variant", exact: true }).click();
+  await expect(variant).toHaveCount(0);
+  await expect(page.locator(".offer-recommendation")).toContainText("Among exact variants.");
+  await page.getByRole("button", { name: "Same model", exact: true }).click();
+  await expect(variant).toBeVisible();
+  await page.getByRole("button", { name: "With delivery", exact: true }).click();
+  await expect(variant.locator(".offer-lowest-badge")).toHaveCount(0);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
 test("shows retailer access failure and lets the user try another input", async ({

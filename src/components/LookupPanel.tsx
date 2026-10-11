@@ -28,7 +28,7 @@ export default function LookupPanel({
           <Search size={20} />
           <input
             aria-label="Product link or brand and model"
-            placeholder="Paste a product link, or enter brand + model + variant"
+            placeholder="Paste a product link, or enter brand + model"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             maxLength={2048}
@@ -54,8 +54,8 @@ export default function LookupPanel({
       </form>
       <p className="lookup-help">
         <Link size={14} />
-        Paste a public ecommerce product URL · we’ll look for the same variant
-        across connected stores
+        Paste a public ecommerce product URL · compare the same model across
+        connected stores, with variant differences labelled
       </p>
       {lookup.isError && (
         <div className="error-state" role="alert">
