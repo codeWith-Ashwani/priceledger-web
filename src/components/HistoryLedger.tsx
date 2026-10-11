@@ -20,7 +20,7 @@ export default function HistoryLedger({ history }: { history: PriceHistory }) {
       <div className="panel-heading">
         <div>
           <h3>Where that price was recorded</h3>
-          <p>Actual observations, with their retailer and source.</p>
+          <p>Actual observations, with their retailer and source. Listed extras are retained in price evidence.</p>
         </div>
         <span className="pill">{rows.length} observations</span>
       </div>
@@ -31,7 +31,7 @@ export default function HistoryLedger({ history }: { history: PriceHistory }) {
               <th>Date & time</th>
               <th>Store</th>
               <th>Item price</th>
-              <th>Delivered total</th>
+              <th>Item + shipping</th>
               <th>Source</th>
             </tr>
           </thead>
@@ -87,6 +87,9 @@ export default function HistoryLedger({ history }: { history: PriceHistory }) {
                         {row.context_snapshot.region}
                       </p>
                     )}
+                    {row.listed_fees?.map((fee) => (
+                      <p key={fee.label}>Listed extra: {fee.label} · {rupees(fee.amount_paise)} (excluded from item + shipping history)</p>
+                    ))}
                     {row.evidence_reference && (
                       <p>Evidence reference: {row.evidence_reference}</p>
                     )}

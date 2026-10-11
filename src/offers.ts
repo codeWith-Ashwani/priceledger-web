@@ -17,7 +17,12 @@ export function comparisonOffers(
 }
 
 export function amount(offer: Offer, basis: PriceBasis): number | null {
-  return basis === "item" ? offer.item_paise : offer.total_paise;
+  if (basis === "item") return offer.item_paise;
+  if (offer.item_paise === null || offer.shipping_paise === null) return null;
+  return (
+    offer.item_paise + offer.shipping_paise +
+    (offer.listed_fees ?? []).reduce((sum, fee) => sum + fee.amount_paise, 0)
+  );
 }
 
 export function rankOffers(offers: Offer[], basis: PriceBasis) {

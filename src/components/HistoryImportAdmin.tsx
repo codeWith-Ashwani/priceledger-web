@@ -9,6 +9,7 @@ import type {
   ImportSource,
 } from "../adminApi";
 import { rupees } from "../format";
+import DiscoveryStores from "./DiscoveryStores";
 
 function indiaDate(value?: string | null) {
   return value
@@ -280,7 +281,8 @@ export default function HistoryImportAdmin() {
                 Disconnect
               </button>
             </div>
-            <section className="panel import-panel" aria-label="Import source">
+              <DiscoveryStores token={token} />
+              <section className="panel import-panel" aria-label="Import source">
               <h2>1. Choose the evidence source</h2>
               <p>
                 Imports must come from a source approved for storage and public

@@ -29,6 +29,15 @@ const offer = (
 });
 
 describe("verified offer ranking", () => {
+  it("includes observed fees in subtotal ranking while keeping item winners separate", () => {
+    const offers = [
+      offer("lower-item", 1000, { listed_fees: [{ label: "Protect Promise Fee", amount_paise: 100, evidence: "page_price_breakdown" }] }),
+      offer("lower-subtotal", 1050),
+    ];
+    expect([...rankOffers(offers, "item").winners]).toEqual(["lower-item"]);
+    expect([...rankOffers(offers, "delivered").winners]).toEqual(["lower-subtotal"]);
+    expect(rankOffers(offers, "delivered").lowest).toBe(1050);
+  });
   it("deduplicates model alternatives and restores exact ranking on request", () => {
     const original = offer("exact", 3000);
     const related = offer("variant", 2000, {match_scope: "model"});

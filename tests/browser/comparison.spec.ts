@@ -140,6 +140,7 @@ test("four-store card contract compares ratings and available prices without lea
       item_paise: item.price,
       shipping_paise: item.shipping,
       total_paise: item.shipping === null ? null : item.price + item.shipping,
+      listed_fees: null,
       in_stock: item.available,
       availability: item.available ? "in_stock" : "out_of_stock",
       stale: false,
@@ -180,7 +181,7 @@ test("four-store card contract compares ratings and available prices without lea
     "Store Alpha · ₹32,000",
   );
   await panel
-    .getByRole("button", { name: "With delivery", exact: true })
+    .getByRole("button", { name: "Known subtotal", exact: true })
     .click();
   await expect(beta.locator(".offer-lowest-badge")).toBeVisible();
   await expect(alpha.locator(".offer-lowest-badge")).toHaveCount(0);
@@ -353,7 +354,7 @@ test("model scope ranks labelled variants without changing exact history", async
   await expect(page.locator(".offer-recommendation")).toContainText("Among exact variants.");
   await page.getByRole("button", { name: "Same model", exact: true }).click();
   await expect(variant).toBeVisible();
-  await page.getByRole("button", { name: "With delivery", exact: true }).click();
+  await page.getByRole("button", { name: "Known subtotal", exact: true }).click();
   await expect(variant.locator(".offer-lowest-badge")).toHaveCount(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
@@ -510,6 +511,7 @@ test("verified-match UI contract shows two retailers and their past price rows",
         item_paise: 3500000,
         total_paise: 3500000,
         price_paise: 3500000,
+        listed_fees: null,
       })),
     });
     await route.fulfill({ json: data });
@@ -530,6 +532,7 @@ test("verified-match UI contract shows two retailers and their past price rows",
       product_url: null,
       item_paise: 3500000,
       total_paise: 3500000,
+      listed_fees: null,
     });
     data.best_price_paise = 3500000;
     await route.fulfill({ json: data });

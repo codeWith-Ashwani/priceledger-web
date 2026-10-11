@@ -13,6 +13,7 @@ import {
 import { api } from "../api";
 import type { Product } from "../api";
 import { rupees, shortDate, titleCase } from "../format";
+import { amount } from "../offers";
 import ProductImage from "./ProductImage";
 import HistoryChart from "./HistoryChart";
 import HistoryLedger from "./HistoryLedger";
@@ -76,9 +77,9 @@ export default function Comparison({
         offer.channel === "online" &&
         offer.in_stock &&
         !offer.stale &&
-        offer.total_paise !== null,
+        amount(offer, "delivered") !== null,
     )
-    .sort((a, b) => a.total_paise! - b.total_paise!)[0];
+    .sort((a, b) => amount(a, "delivered")! - amount(b, "delivered")!)[0];
   const listed = product?.offers
     .filter(
       (offer) =>
@@ -155,17 +156,17 @@ export default function Comparison({
               <div className="best-price">
                 <span>
                   {best
-                    ? "Lowest known delivered total"
+                    ? "Exact variant · known subtotal"
                     : "Latest listed item price"}
                 </span>
                 <strong>
                   {rupees(
-                    best ? best.total_paise : (listed?.item_paise ?? null),
+                    best ? amount(best, "delivered") : (listed?.item_paise ?? null),
                   )}
                 </strong>
                 <p>
                   {best
-                    ? `${best.retailer_name} · item + known delivery`
+                    ? `${best.retailer_name} · item + shipping + listed extras; checkout may differ`
                     : listed
                       ? `${listed.retailer_name} · ${listed.availability === "out_of_stock" ? "out of stock" : "delivery or availability not confirmed"}`
                       : "No fresh price available"}
@@ -230,7 +231,7 @@ export default function Comparison({
                     </strong>
                   </div>
                   <div>
-                    <span>Latest delivered total</span>
+                    <span>Latest item + shipping</span>
                     <strong className="green">
                       {rupees(product.best_price_paise)}
                     </strong>
@@ -299,8 +300,9 @@ export default function Comparison({
                           : `${Math.abs(assessment.savings_percent)}% ${assessment.savings_percent < 0 ? "above" : "below"} the usual price.`}
                       </h4>
                       <p>
-                        Compared with recorded delivered totals at{" "}
+                        Compared with recorded item + shipping prices at{" "}
                         {assessment.retailer_name ?? "a matching store"}.
+                        Listed extras are excluded from this historical assessment.
                       </p>
                       <div className="discount-comparison">
                         <div>

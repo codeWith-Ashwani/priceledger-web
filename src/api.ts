@@ -13,7 +13,15 @@ export interface Product {
   retailer_count: number;
 }
 
+export interface ListedFee {
+  label: string;
+  amount_paise: number;
+  evidence: "page_price_breakdown" | "structured_offer";
+}
+
 export interface Offer {
+  listed_fees?: ListedFee[] | null;
+  known_subtotal_paise?: number | null;
   match_scope?: "model";
   differences?: {
     attribute: string;
@@ -57,6 +65,7 @@ export interface ProductDetail extends Product {
 }
 
 export interface HistoryPoint {
+  listed_fees?: ListedFee[] | null;
   observation_id?: number;
   gap_before?: boolean;
   evidence_reference?: string | null;

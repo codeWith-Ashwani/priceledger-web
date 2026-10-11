@@ -106,7 +106,7 @@ export default function OfferCards({
             aria-pressed={basis === "delivered"}
             onClick={() => setBasis("delivered")}
           >
-            With delivery
+            Known subtotal
           </button>
         </div>
       </div>
@@ -123,14 +123,15 @@ export default function OfferCards({
             {ranked.lowest === null
               ? "Unavailable, outdated or incomplete offers cannot win the comparison."
               : ranked.comparableStores === 1
-                ? `Only one store has a confirmed available ${basis === "item" ? "item price" : "delivered total"}.`
-                : `${ranked.winners.size > 1 ? "Joint lowest" : "Lowest"} ${basis === "item" ? "item price" : "known delivered total"} among ${ranked.comparableStores} currently available stores.`}
+                ? `Only one store has a confirmed available ${basis === "item" ? "item price" : "known subtotal"}.`
+                : `${ranked.winners.size > 1 ? "Joint lowest" : "Lowest"} ${basis === "item" ? "item price" : "known subtotal"} among ${ranked.comparableStores} currently available stores.`}
             {basis === "item" && ranked.lowest !== null
-              ? " Delivery is shown separately."
+              ? " Delivery and listed extras are shown separately."
               : basis === "delivered" &&
                   ranked.availableStores > ranked.comparableStores
                 ? " Stores with unknown delivery are excluded from this total comparison."
                 : ""}
+            {basis === "delivered" && " Includes item price, known shipping and listed fees. Other checkout charges may remain unknown."}
           </p>
         </div>
         {pending && (
@@ -162,7 +163,7 @@ export default function OfferCards({
                     <Check size={12} />
                     {ranked.comparableStores === 1
                       ? "Only confirmed price"
-                      : `Lowest ${basis === "item" ? "item price" : "known total"}`}
+                      : `Lowest ${basis === "item" ? "item price" : "known subtotal"}`}
                   </span>
                 )}
               </div>
@@ -198,7 +199,7 @@ export default function OfferCards({
                   {price === null ? "Price not confirmed" : rupees(price)}
                 </strong>
                 <span>
-                  {basis === "item" ? "Item price" : "Item + delivery"}
+                  {basis === "item" ? "Item price" : "Known subtotal"}
                 </span>
               </div>
               <dl className="offer-price-details">
@@ -231,6 +232,16 @@ export default function OfferCards({
                   </dd>
                 </div>
               </dl>
+              {offer.listed_fees?.length ? (
+                <dl className="offer-price-details">
+                  {offer.listed_fees.map((fee) => (
+                    <div key={fee.label}><dt>{fee.label}</dt><dd>{rupees(fee.amount_paise)}</dd></div>
+                  ))}
+                </dl>
+              ) : <p className="offer-seller">Extra fees not confirmed</p>}
+              {basis === "delivered" && offer.shipping_paise !== null && (
+                <p className="offer-seller">Delivery: {offer.shipping_paise === 0 ? "Free" : rupees(offer.shipping_paise)}</p>
+              )}
               <p className="offer-identity">
                 <ShieldCheck size={13} />{" "}
                 {offer.match_scope === "model" ? "Same model · check variant" : "Exact variant"}
@@ -344,7 +355,7 @@ export default function OfferCards({
         Prices and ratings come from the named store’s last readable check.
         Model matches can differ in colour, memory or size. Check the winning variant before buying.
         Price history and discount analysis below cover the exact variant only.
-        Checkout or protection fees may be extra; confirm the final total at the store.
+        Known subtotals include only observed charges. Confirm the final checkout total at the store.
         Missing stores are never filled with guessed prices.
       </p>
     </section>

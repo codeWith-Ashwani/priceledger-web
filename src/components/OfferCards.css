@@ -244,7 +244,8 @@
     gap: 10px;
   }
   .offer-recommendation {
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr);
     padding: 15px;
   }
   .offer-recommendation > div {
@@ -255,7 +256,9 @@
     font-size: 15px;
   }
   .scanning-pill {
-    margin-left: 34px;
+    grid-column: 2;
+    margin-left: 0;
+    white-space: normal;
   }
   .offer-card .real-product-image {
     height: 165px;
