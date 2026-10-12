@@ -1,0 +1,131 @@
+.report-dialog {
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+}
+.report-dialog select,
+.report-dialog textarea,
+.report-queue select,
+.report-queue textarea {
+  width: 100%;
+  border: 1px solid #cbdcc0;
+  border-radius: 6px;
+  padding: 0.7rem;
+  background: white;
+  color: inherit;
+  font: inherit;
+}
+.report-dialog textarea,
+.report-queue textarea {
+  resize: vertical;
+}
+.report-dialog select {
+  margin-bottom: 1rem;
+}
+.report-dialog small {
+  color: #526458;
+}
+.report-confirmation {
+  margin-top: 1.25rem;
+  overflow-wrap: anywhere;
+}
+.report-confirmation p {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  margin: 0.8rem 0;
+}
+.report-offer-button {
+  font: inherit;
+  font-size: 0.75rem;
+  color: #526458;
+  background: transparent;
+  border: 0;
+  padding: 0.4rem 0;
+  cursor: pointer;
+  text-align: left;
+}
+.report-queue {
+  min-width: 0;
+}
+.report-queue-head,
+.report-queue-controls,
+.report-pages {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.report-queue-controls label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.report-queue-controls select {
+  width: auto;
+}
+.report-queue button {
+  cursor: pointer;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #d9e2da;
+  background: white;
+  color: inherit;
+  border-radius: 0.5rem;
+}
+.report-queue button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.report-queue-list {
+  display: grid;
+  gap: 0.75rem;
+  list-style: none;
+  padding: 0;
+}
+.report-queue-list > li {
+  padding: 1rem;
+  border: 1px solid #d9e2da;
+  border-radius: 0.6rem;
+  overflow-wrap: anywhere;
+}
+.report-queue-list p {
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+.report-pages {
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+.report-pages span {
+  margin-right: auto;
+  font-size: 0.85rem;
+}
+.report-review {
+  padding: 1rem;
+  margin-top: 1.5rem;
+  background: #f7f9f6;
+  border-radius: 0.6rem;
+  overflow-wrap: anywhere;
+}
+.report-review label {
+  display: block;
+  margin: 1rem 0 0.5rem;
+}
+.report-review pre {
+  white-space: pre-wrap;
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+.report-review blockquote {
+  margin: 1rem 0;
+  padding: 0.75rem;
+  border-left: 3px solid #9bb69e;
+  white-space: pre-wrap;
+}
+.report-review li {
+  margin: 1rem 0;
+  font-size: 0.85rem;
+}
+.report-review li p {
+  white-space: pre-wrap;
+}

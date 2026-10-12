@@ -7,7 +7,7 @@ import {
   Star,
   TrendingDown,
 } from "lucide-react";
-import type { ComparisonScan, ProductDetail } from "../api";
+import type { ComparisonScan, Offer, ProductDetail } from "../api";
 import { rupees } from "../format";
 import {
   amount,
@@ -19,6 +19,7 @@ import {
   type PriceBasis,
 } from "../offers";
 import ProductImage from "./ProductImage";
+import ReportDialog from "./ReportDialog";
 import "./OfferCards.css";
 
 const checked = (value: string) =>
@@ -56,6 +57,7 @@ export default function OfferCards({
   const [store, setStore] = useState("");
   const [storage, setStorage] = useState("");
   const [sort, setSort] = useState<OfferSort>("price");
+  const [reportedOffer, setReportedOffer] = useState<Offer | null>(null);
   const all = comparisonOffers(
     product.offers,
     scan?.model_offers,
@@ -417,6 +419,13 @@ export default function OfferCards({
                   </a>
                 )}
               </div>
+              <button
+                className="report-offer-button"
+                type="button"
+                onClick={() => setReportedOffer(offer)}
+              >
+                Report an issue
+              </button>
             </article>
           );
         })}
@@ -506,6 +515,13 @@ export default function OfferCards({
         Confirm the final checkout total at the store. Missing stores are never
         filled with guessed prices.
       </p>
+      {reportedOffer && (
+        <ReportDialog
+          offer={reportedOffer}
+          comparisonProduct={product}
+          onClose={() => setReportedOffer(null)}
+        />
+      )}
     </section>
   );
 }

@@ -24,6 +24,7 @@ Vite variables are public browser configuration. Never put admin tokens, databas
 3. The API automatically scans connected sources. Cards show each store's product title, image, price, rating when supplied, stock, shipping, fees, seller and check time.
 4. Compare all verified returned offers, or filter by store, known storage capacity and fresh available stock. Sort by price, normalized product rating or recent check. Active filters recalculate the lowest eligible price and can be reset.
 5. Inspect the exact variant's chart, source toggles, observation ledger, coverage and historical assessment. Save a browser-local price target if useful.
+6. Use **Report an issue** on an offer card to flag an incorrect price/model, outdated quote, stock issue or broken store link. The form captures the displayed quote and comparison context for private owner review.
 
 Same-model cards may differ in colour, RAM, storage or size; known differences and separate variant-history links remain visible. Exact-variant mode shows verified exact matches. Model alternatives do not enter the selected variant's graph or discount assessment. There is no three/four-store card cap. A store may supply multiple variant cards.
 
@@ -53,11 +54,19 @@ Targets are saved in this browser's local storage. Opening **My targets** reads 
 
 Email/push delivery, accounts and cross-device synchronization are not implemented. Existing target data keeps its browser format. Storage failures are shown explicitly.
 
+## Reporting an issue
+
+Choose a reason and describe the problem in 5–1,000 characters. Leave out personal/payment information. Successful submission returns a reference; network failures/timeouts allow a manual retry with the same submission identifier while the dialog stays open. Editing the details creates a new identifier. Closing/reopening the dialog starts a new submission. Reports are not saved in browser storage.
+
+If the quote changed on the server, refresh prices before reporting again. Validation errors, rate limits and unconfirmed responses stay visible; they never show a false success. The owner receives a snapshot of the recorded offer and comparison variant. Reporting does not immediately change a price or match, and there is no public report-status lookup or outbound delivery.
+
 ## Owner workspace
 
 Open `/?admin=imports`. The API must have a server-only `PRICELEDGER_ADMIN_TOKEN`; enter it in the workspace. The token stays in component memory and is cleared by disconnect/reload. It is never saved in local/session storage or URLs. Use HTTPS beyond local development.
 
-The workspace includes collection health, permitted historical sources, tracked offers, import previews/audits and learned Shopify stores. Collection health shows stale/missing prices, failed offer checks, approved-price history gaps, scheduling and source cooldowns/budgets. Offer filters and independent source/offer pagination cover every recorded source without loading its full history. Refresh reads recorded state; it does not contact retailers, start jobs or confirm a worker is alive. Requests cancel on disconnect, failed reads show an error without substitute statistics, and all times use India time.
+The workspace includes issue reports, collection health, permitted historical sources, tracked offers, import previews/audits and learned Shopify stores. Collection health shows stale/missing prices, failed offer checks, approved-price history gaps, scheduling and source cooldowns/budgets. Offer filters and independent source/offer pagination cover every recorded source without loading its full history. Refresh reads recorded state; it does not contact retailers, start jobs or confirm a worker is alive. Requests cancel on disconnect, failed reads show an error without substitute statistics, and all times use India time.
+
+The private issue queue supports status filters, pagination, captured variant/source evidence, review notes and paginated revision history. Resolve or dismiss with an explanation. Concurrent edits require reloading the report; unsaved notes survive audit pagination/reload. Review records the investigation without rewriting price or matching evidence. Disconnect cancels pending queue, detail and review requests.
 
 Identity templates contain blank price/date/evidence fields. Imports require genuine exact-variant records and explicit source approval. Invalid rows block staging, and commit revalidates permissions, context and events atomically. Independent archives supplement history without replacing current live offers.
 
@@ -94,6 +103,7 @@ Use a separate database and temporary quota overrides for a large suite. `PRICEL
 | `HistoryChart`, `HistoryLedger`, `HistoryCoverage`, `PriceInsights` | Dated evidence, coverage and recorded statistics |
 | `TargetCard`, `WatchDialog`, `src/watchlist.ts` | Local targets and progress |
 | `HistoryImportAdmin`, `DiscoveryStores`, `CollectionDashboard` | Authenticated owner controls and read-only collection health |
+| `ReportDialog`, `ReportQueue`, `src/reports.ts` | Public issue intake, safe retries and private owner review |
 | `src/offers.ts`, `src/chart.ts` | Ranking/filtering and chart transformations |
 | `src/*.test.ts`, `tests/browser/` | Unit and desktop/mobile regressions |
 
