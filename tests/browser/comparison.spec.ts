@@ -635,5 +635,5 @@ test("failed collection keeps evidence separate from the last recorded price", a
   await expect(page.locator(".offers-panel .offers-table")).toContainText(
     "Flipkart product page",
   );
-  expect(await page.locator(".history-svg circle").count()).toBeGreaterThan(0);
+  await expect(page.locator(".history-svg circle").first()).toBeVisible();
 });

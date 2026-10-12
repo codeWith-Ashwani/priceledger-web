@@ -2,6 +2,8 @@ import { expect, test, type Page } from "@playwright/test";
 
 // Contract responses are intercepted in the browser; nothing is inserted into a catalog.
 const product = "flipkart:MOBHQENASR3JJ8BN";
+const apiBase =
+  process.env.PRICELEDGER_TEST_API_URL ?? "http://127.0.0.1:8000/api/v1";
 const checked = "2026-10-12T10:00:00Z";
 const city = "a".repeat(32);
 const otherCity = "b".repeat(32);
@@ -414,9 +416,7 @@ test("owner registers real-input shop permissions and creates an unpublished exa
   request,
 }) => {
   const detail = await (
-    await request.get(
-      "http://127.0.0.1:8100/api/v1/products/" + encodeURIComponent(product),
-    )
+    await request.get(`${apiBase}/products/` + encodeURIComponent(product))
   ).json();
   let registered: any = null;
   let saved: any = null;

@@ -1,4 +1,5 @@
 import { base } from "./api";
+import { requestJson, responseMessage } from "./request";
 
 export interface ImportSource {
   id: string;
@@ -61,30 +62,23 @@ export async function adminRequest<T>(
   body?: unknown,
   signal?: AbortSignal,
 ): Promise<T> {
-  const response = await fetch(`${base}/admin${path}`, {
-    method: body === undefined ? "GET" : "POST",
-    headers: {
-      "X-Admin-Token": token,
-      ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+  const { response, data } = await requestJson(
+    `${base}/admin${path}`,
+    {
+      method: body === undefined ? "GET" : "POST",
+      headers: {
+        "X-Admin-Token": token,
+        ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+      },
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      cache: "no-store",
+      signal,
     },
-    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-    cache: "no-store",
-    signal,
-  });
-  const data = await response.json();
+    45_000,
+  );
   if (!response.ok) {
-    const detail = data.detail;
     throw new Error(
-      typeof detail === "string"
-        ? detail
-        : Array.isArray(detail)
-          ? detail
-              .map(
-                (error: { loc: string[]; msg: string }) =>
-                  `${error.loc.join(".")}: ${error.msg}`,
-              )
-              .join("; ")
-          : "The owner request could not complete.",
+      responseMessage(data, "The owner request could not complete."),
     );
   }
   return data as T;

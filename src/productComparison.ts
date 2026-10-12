@@ -48,6 +48,8 @@ export async function loadProductComparison(
   signal: AbortSignal,
 ): Promise<ProductComparison> {
   const response = await fetch(`${base}/product-comparison`, {
+    redirect: "error",
+    credentials: "omit",
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ product_ids: ids }),

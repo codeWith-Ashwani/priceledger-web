@@ -1,4 +1,5 @@
 import { comparisonError } from "./comparisonRetry";
+import { requestJson, responseMessage } from "./request";
 
 export interface Product {
   id: string;
@@ -255,14 +256,14 @@ export type LookupResult =
   | { kind: "search"; query: string; stores: SearchStore[]; message: string };
 
 async function get<T>(route: string, signal?: AbortSignal): Promise<T> {
-  const response = await fetch(`${base}${route}`, { signal });
+  const { response, data } = await requestJson(`${base}${route}`, { signal });
   if (!response.ok)
     throw new Error(
       response.status === 404
         ? "This product is not available."
         : "The comparison service could not load this data.",
     );
-  return response.json() as Promise<T>;
+  return data as T;
 }
 
 export const api = {
@@ -270,16 +271,14 @@ export const api = {
     id: string,
     signal?: AbortSignal,
   ): Promise<ComparisonScan> => {
-    const response = await fetch(
+    const { response, data } = await requestJson(
       `${base}/products/${encodeURIComponent(id)}/compare`,
       { method: "POST", signal },
+      180_000,
     );
-    const data = await response.json();
     if (!response.ok)
       throw comparisonError(
-        typeof data.detail === "string"
-          ? data.detail
-          : (data.detail?.message ?? "Other stores could not be checked."),
+        responseMessage(data, "Other stores could not be checked."),
         response,
       );
     return data as ComparisonScan;
@@ -288,18 +287,19 @@ export const api = {
     query: string,
     signal?: AbortSignal,
   ): Promise<LookupResult> => {
-    const response = await fetch(`${base}/lookup`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query }),
-      signal,
-    });
-    const data = await response.json();
+    const { response, data } = await requestJson(
+      `${base}/lookup`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query }),
+        signal,
+      },
+      120_000,
+    );
     if (!response.ok)
       throw new Error(
-        typeof data.detail === "string"
-          ? data.detail
-          : (data.detail?.message ?? "The product lookup could not complete."),
+        responseMessage(data, "The product lookup could not complete."),
       );
     return data as LookupResult;
   },

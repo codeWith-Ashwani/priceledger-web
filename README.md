@@ -4,6 +4,8 @@ React interface for comparing real product prices in India and exploring their r
 
 **Stack:** React, TypeScript, Vite and TanStack Query. Price collection, matching and persistence live in the separate [PriceLedger API](https://github.com/codeWith-Ashwani/priceledger-api) repository. Both repositories remain private.
 
+**Release 1.0.0:** the existing feature scope is frozen. This release adds engineering safeguards and reproducible release packaging. Retailer coverage, historical depth and offline evidence retain the limitations below.
+
 ## Quick start
 
 Requires Node.js **22.12+** and the migrated API running on port 8000.
@@ -106,6 +108,16 @@ npm run build
 
 The production build writes ignored output to `dist/`. `npm run preview` serves that build locally; configure its origin in backend CORS when testing API access. Deploy frontend assets and the backend separately, with the correct public API base configured at build time.
 
+The Docker build compiles with `VITE_API_BASE_URL=/api/v1`. Its non-root, read-only Nginx runtime serves hashed assets with immutable caching, keeps HTML/API responses uncached, adds browser security headers and proxies API calls on the same origin. Containers listen on 8080. See the API README's **Reproducible release setup** for the matching PostgreSQL/API/worker/web Compose stack, credentials, backups and rollback. Both repositories must be sibling directories at matching `v1.0.0` tags. This setup binds to localhost; public hosting requires its own TLS, trusted edge, rate-limit and monitoring configuration.
+
+API requests reject redirects, omit browser cookies and have deadlines covering headers and body decoding. Ordinary reads allow 20 seconds, owner imports 45 seconds, lookup 120 seconds and cross-store scans 180 seconds; owner dashboards and evidence panels retain their shorter managed deadlines. Leaving a lookup cancels it. A timed-out write may already have reached the server: refresh its state or use the existing receipt-based retry flow. Unexpected rendering failures show a reload control; saved browser targets remain intact.
+
+CI runs locked dependency installation, dependency audit, unit tests, TypeScript and production compilation, six desktop/mobile compiled-build smoke checks and a restricted-container smoke. The private Actions build artifact contains only compiled assets and expires after 14 days; it includes no database, credentials or QA evidence. To run only the self-contained smoke locally against a running frontend:
+
+```sh
+npm run test:e2e -- tests/browser/release-smoke.spec.ts
+```
+
 For browser checks, run the API and Vite with Google Chrome installed:
 
 ```sh
@@ -124,7 +136,7 @@ Use a separate database and temporary quota overrides for a large suite. `PRICEL
 
 | Files | Responsibility |
 | --- | --- |
-| `src/api.ts`, `src/adminApi.ts`, `src/comparisonRetry.ts` | Typed API clients and bounded busy-response recovery |
+| `src/api.ts`, `src/adminApi.ts`, `src/request.ts`, `src/comparisonRetry.ts` | Typed API clients, bounded transport and busy-response recovery |
 | `LookupPanel`, `Comparison`, `OfferCards` | User-driven lookup and cross-store comparison |
 | `HistoryChart`, `HistoryLedger`, `HistoryCoverage`, `PriceInsights` | Dated evidence, coverage and recorded statistics |
 | `TargetCard`, `WatchDialog`, `src/watchlist.ts` | Local targets and progress |

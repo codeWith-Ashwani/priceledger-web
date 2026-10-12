@@ -92,6 +92,8 @@ export async function submitReport(
   signal: AbortSignal,
 ): Promise<ReportReceipt> {
   const response = await fetch(`${base}/reports`, {
+    redirect: "error",
+    credentials: "omit",
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),

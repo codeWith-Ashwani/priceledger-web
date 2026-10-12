@@ -116,7 +116,12 @@ export async function localQuotes(
   try {
     const response = await fetch(
       `${base}/products/${encodeURIComponent(productId)}/offline-quotes?${query}`,
-      { signal: controller.signal, cache: "no-store" },
+      {
+        signal: controller.signal,
+        cache: "no-store",
+        redirect: "error",
+        credentials: "omit",
+      },
     );
     if (!response.ok)
       throw new Error("Local shop evidence could not load. Try again.");

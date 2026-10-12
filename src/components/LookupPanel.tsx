@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { ArrowRight, ArrowUpRight, Link, Search } from "lucide-react";
 import { api } from "../api";
@@ -9,10 +9,24 @@ export default function LookupPanel({
   onProduct: (id: string) => void;
 }) {
   const [query, setQuery] = useState("");
+  const active = useRef<AbortController | null>(null);
+  const alive = useRef(true);
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+      active.current?.abort();
+    };
+  }, []);
   const lookup = useMutation({
-    mutationFn: (input: string) => api.lookup(input),
+    mutationFn: (input: string) => {
+      active.current?.abort();
+      active.current = new AbortController();
+      return api.lookup(input, active.current.signal);
+    },
     onSuccess: (result) => {
-      if (result.kind === "product") onProduct(result.product_id);
+      if (alive.current && result.kind === "product")
+        onProduct(result.product_id);
     },
   });
   return (

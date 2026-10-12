@@ -12,5 +12,51 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm audit --audit-level=moderate
       - run: npm test
       - run: npm run build
+        env:
+          VITE_API_BASE_URL: /api/v1
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e -- tests/browser/release-smoke.spec.ts
+        env:
+          CI: "true"
+          PRICELEDGER_TEST_BASE_URL: http://127.0.0.1:4173
+      - uses: actions/upload-artifact@v4
+        with:
+          name: priceledger-web-1.0.0
+          path: dist/
+          retention-days: 14
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: docker build -t priceledger-web:1.0.0 .
+      - name: Run the compiled image with its release restrictions
+        run: |
+          docker run -d --name priceledger-web-check --read-only --tmpfs /tmp --cap-drop ALL --security-opt no-new-privileges --add-host api:127.0.0.1 -p 127.0.0.1:18080:8080 priceledger-web:1.0.0
+          for attempt in $(seq 1 30); do
+            if curl --silent --fail http://127.0.0.1:18080/health; then break; fi
+            sleep 1
+          done
+          curl --silent --fail -D headers.txt http://127.0.0.1:18080/ > index.html.actual
+          grep -qi 'Content-Security-Policy:' headers.txt
+          grep -qi 'Cache-Control: no-store' headers.txt
+          grep -qi 'X-Content-Type-Options: nosniff' headers.txt
+          grep -q 'id="root"' index.html.actual
+          test "$(curl --silent -o /dev/null -w '%{http_code}' http://127.0.0.1:18080/assets/missing.js)" = "404"
+          test "$(docker inspect -f '{{.Config.User}}' priceledger-web-check)" = "101:101"
+      - name: Exercise the compiled app under Nginx security headers
+        run: npm run test:e2e -- tests/browser/release-smoke.spec.ts
+        env:
+          CI: "true"
+          PRICELEDGER_TEST_BASE_URL: http://127.0.0.1:18080
+          PRICELEDGER_TEST_EXTERNAL_SERVER: "true"
+      - if: always()
+        run: docker rm -f priceledger-web-check
