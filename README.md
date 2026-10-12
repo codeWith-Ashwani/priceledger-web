@@ -31,6 +31,8 @@ Same-model cards may differ in colour, RAM, storage or size; known differences a
 
 Blocked pages, cooldowns, unknown prices/ratings and uncertain identities stay explicit. Missing cards do not prove a retailer lacks stock. Additional stores depend on backend adapters, readable evidence and source permissions; this is not universal internet discovery.
 
+The backend also connects Fire-Boltt's official `.com` catalog. Paste an official product link or search its brand/model to compare verified returned offers with other connected stores. Sold-out official listings remain labelled and cannot win against available offers. Watch generations such as Pro, Plus and Max remain distinct; colour alternatives retain separate histories. Missing shipping, condition or retailer ratings remain unconfirmed.
+
 When another request is scanning the same product, comparison automatically retries at most three times using the API's numeric `Retry-After` delay (up to 15 seconds each). Recorded offers remain visible while waiting. Persistent conflicts show a retry control; other failures and source quotas are not automatically retried. Leaving the product cancels pending comparison recovery.
 
 ## Understanding prices
@@ -100,6 +102,8 @@ npm run test:e2e
 ```
 
 Live regressions require the genuine listings referenced in the browser tests to have been looked up in the test API first. They depend on retailer readability/stock and are separate from deterministic unit CI. Explicit intercepted contracts cover sorting, filters, ranking, targets and failures without inserting synthetic offers into storage.
+
+The optional Fire-Boltt browser regression uses a comma-separated `PRICELEDGER_TEST_FIREBOLTT_IDS` list of genuine product IDs returned by URL lookup and the matching `PRICELEDGER_TEST_API_URL`. It checks actual official/marketplace cards, stock-aware ranking, unknown delivery, product images and responsive layout. Without IDs it skips; it never seeds products or assumes fixed prices or store counts.
 
 Run the genuine same-product desktop/mobile regression serially with `npm run test:e2e -- tests/browser/apple-discovery.spec.ts --workers=1` for deterministic source checks. Concurrent scans can receive the API's intentional 409 lease-conflict response; separate controlled browser tests verify bounded automatic recovery.
 
