@@ -25,6 +25,7 @@ Vite variables are public browser configuration. Never put admin tokens, databas
 4. Compare all verified returned offers, or filter by store, known storage capacity and fresh available stock. Sort by price, normalized product rating or recent check. Active filters recalculate the lowest eligible price and can be reset.
 5. Inspect the exact variant's chart, source toggles, observation ledger, coverage and historical assessment. Save a browser-local price target if useful.
 6. Use **Report an issue** on an offer card to flag an incorrect price/model, outdated quote, stock issue or broken store link. The form captures the displayed quote and comparison context for private owner review.
+7. Use **Add to product comparison** in the price overview, find another product, then open **Compare selected products** to inspect them side by side.
 
 Same-model cards may differ in colour, RAM, storage or size; known differences and separate variant-history links remain visible. Exact-variant mode shows verified exact matches. Model alternatives do not enter the selected variant's graph or discount assessment. There is no three/four-store card cap. A store may supply multiple variant cards.
 
@@ -53,6 +54,16 @@ History starts with genuine observations or reviewed historical imports. Complet
 Targets are saved in this browser's local storage. Opening **My targets** reads the latest recorded exact online offers and displays target reached, the amount above target or an unconfirmed status. This does not trigger a new retailer fetch or send an outbound message. Prices may have changed since their displayed check time.
 
 Email/push delivery, accounts and cross-device synchronization are not implemented. Existing target data keeps its browser format. Storage failures are shown explicitly.
+
+## Side-by-side products
+
+Add 2–4 user-selected products to the comparison list. It stays in memory for this visit and clears on reload; no sample product or automatic selection is added. Remove individual items or clear the list. The four-product limit applies to columns, while every permitted recorded store offer remains accessible within each column.
+
+The table shows each product's image, recorded model/colour/RAM/storage/size/pack/part number, and separate lowest fresh available online item-price and known-subtotal quotes. Winners retain store, source, seller, condition and check time. Known subtotals require known shipping and include listed extras; conditional promotions stay excluded. Expand **Store evidence** for every recorded offer, including stale/unavailable quotes, fees and retailer-provided product ratings. Products have independent histories; **View offers and history** opens the selected variant's existing detail.
+
+Unknown facts display **Not recorded**. **Hide identical known details** hides a row only when all products have the same known value, preserving uncertain rows. Fields are recorded retailer metadata/title-derived identity details; technical specification feeds are not connected. There is no overall best-product recommendation across different models.
+
+**Reload recorded prices** reads permitted database evidence without fetching retailers; the read time is separate from quote check times. Use each product's existing **Check stores again** for a new scan. Errors withdraw previous table results and require manual reload. Changed selections, hiding or clearing the workspace cancel pending reads. If two selections represent the same exact variant, remove one. The table scrolls within its keyboard-focusable container on mobile.
 
 ## Reporting an issue
 
@@ -104,6 +115,7 @@ Use a separate database and temporary quota overrides for a large suite. `PRICEL
 | `TargetCard`, `WatchDialog`, `src/watchlist.ts` | Local targets and progress |
 | `HistoryImportAdmin`, `DiscoveryStores`, `CollectionDashboard` | Authenticated owner controls and read-only collection health |
 | `ReportDialog`, `ReportQueue`, `src/reports.ts` | Public issue intake, safe retries and private owner review |
+| `ProductCompare`, `src/productComparison.ts` | Visit-only product selection, independent prices and recorded variant comparison |
 | `src/offers.ts`, `src/chart.ts` | Ranking/filtering and chart transformations |
 | `src/*.test.ts`, `tests/browser/` | Unit and desktop/mobile regressions |
 

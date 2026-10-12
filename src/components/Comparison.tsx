@@ -33,10 +33,16 @@ export default function Comparison({
   productId,
   setTarget,
   showMethod,
+  addToComparison,
+  selectedForComparison,
+  comparisonFull,
 }: {
   productId: string;
   setTarget: (product: Product) => void;
   showMethod: () => void;
+  addToComparison: (product: Product) => void;
+  selectedForComparison: boolean;
+  comparisonFull: boolean;
 }) {
   const [days, setDays] = useState(90);
   const queryClient = useQueryClient();
@@ -181,13 +187,26 @@ export default function Comparison({
                       ? `${listed.retailer_name} · ${listed.availability === "out_of_stock" ? "out of stock" : "delivery or availability not confirmed"}`
                       : "No fresh price available"}
                 </p>
-                <button
-                  className="button primary"
-                  onClick={() => setTarget(product)}
-                >
-                  <Bell size={16} />
-                  Set my target
-                </button>
+                <div className="best-price-actions">
+                  <button
+                    className="button primary"
+                    onClick={() => setTarget(product)}
+                  >
+                    <Bell size={16} />
+                    Set my target
+                  </button>
+                  <button
+                    className="button secondary"
+                    disabled={selectedForComparison || comparisonFull}
+                    onClick={() => addToComparison(product)}
+                  >
+                    {selectedForComparison
+                      ? "Added to comparison"
+                      : comparisonFull
+                        ? "Comparison list full"
+                        : "Add to product comparison"}
+                  </button>
+                </div>
               </div>
             </div>
             <OfferCards

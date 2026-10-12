@@ -9,6 +9,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import type { Product } from "./api";
+import { comparisonLimit } from "./productComparison";
 import { readWatches, saveWatches } from "./watchlist";
 import LookupPanel from "./components/LookupPanel";
 import Comparison from "./components/Comparison";
@@ -19,6 +20,7 @@ import TargetCard from "./components/TargetCard";
 const HistoryImportAdmin = lazy(
   () => import("./components/HistoryImportAdmin"),
 );
+const ProductCompare = lazy(() => import("./components/ProductCompare"));
 
 export default function App() {
   if (new URLSearchParams(location.search).get("admin") === "imports") {
@@ -47,6 +49,7 @@ function ConsumerApp() {
   const [watchProduct, setWatchProduct] = useState<Product | null>(null);
   const [methodOpen, setMethodOpen] = useState(false);
   const [notice, setNotice] = useState("");
+  const [selections, setSelections] = useState<Product[]>([]);
   useEffect(() => {
     const listener = () =>
       setSelectedId(new URLSearchParams(location.search).get("product") ?? "");
@@ -159,11 +162,40 @@ function ConsumerApp() {
               </button>
             </section>
             <LookupPanel onProduct={(id) => selectProduct(id)} />
+            {selections.length > 0 && (
+              <Suspense
+                fallback={<p role="status">Loading comparison list…</p>}
+              >
+                <ProductCompare
+                  selections={selections}
+                  remove={(id) =>
+                    setSelections((items) =>
+                      items.filter((product) => product.id !== id),
+                    )
+                  }
+                  clear={() => setSelections([])}
+                  view={(id) => selectProduct(id, true)}
+                />
+              </Suspense>
+            )}
             {selectedId && (
               <Comparison
                 productId={selectedId}
                 setTarget={setWatchProduct}
                 showMethod={() => setMethodOpen(true)}
+                selectedForComparison={selections.some(
+                  (product) => product.id === selectedId,
+                )}
+                comparisonFull={selections.length >= comparisonLimit}
+                addToComparison={(product) => {
+                  setSelections((items) =>
+                    items.some((item) => item.id === product.id) ||
+                    items.length >= comparisonLimit
+                      ? items
+                      : [...items, product],
+                  );
+                  setNotice("Product added to your comparison list.");
+                }}
               />
             )}
           </>

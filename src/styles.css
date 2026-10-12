@@ -599,6 +599,12 @@ svg {
   font-size: 10px;
   margin: 4px 0 16px;
 }
+.best-price-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
 .button {
   display: inline-flex;
   align-items: center;
@@ -1526,7 +1532,7 @@ svg {
     grid-column: 1;
     margin: 3px 0;
   }
-  .best-price .button {
+  .best-price-actions {
     grid-column: 2;
     grid-row: 1/4;
   }
