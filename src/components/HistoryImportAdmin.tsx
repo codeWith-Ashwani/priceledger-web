@@ -10,6 +10,7 @@ import type {
 } from "../adminApi";
 import { rupees } from "../format";
 import DiscoveryStores from "./DiscoveryStores";
+import CollectionDashboard from "./CollectionDashboard";
 
 function indiaDate(value?: string | null) {
   return value
@@ -229,10 +230,10 @@ export default function HistoryImportAdmin() {
           <span className="eyebrow">
             <ShieldCheck size={16} /> Owner workspace
           </span>
-          <h1>Bring the past into view.</h1>
+          <h1>Keep the evidence healthy.</h1>
           <p>
-            Review genuine historical records before they join a product’s
-            timeline.
+            Monitor collection health, manage discovery and review genuine
+            historical records before they join a product’s timeline.
           </p>
         </div>
         {error && (
@@ -281,6 +282,7 @@ export default function HistoryImportAdmin() {
                 Disconnect
               </button>
             </div>
+              <CollectionDashboard token={token} />
               <DiscoveryStores token={token} />
               <section className="panel import-panel" aria-label="Import source">
               <h2>1. Choose the evidence source</h2>

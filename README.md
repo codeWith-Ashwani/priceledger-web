@@ -57,7 +57,9 @@ Email/push delivery, accounts and cross-device synchronization are not implement
 
 Open `/?admin=imports`. The API must have a server-only `PRICELEDGER_ADMIN_TOKEN`; enter it in the workspace. The token stays in component memory and is cleared by disconnect/reload. It is never saved in local/session storage or URLs. Use HTTPS beyond local development.
 
-The workspace lists permitted historical sources, tracked offers, import previews/audits and learned Shopify stores. Identity templates contain blank price/date/evidence fields. Imports require genuine exact-variant records and explicit source approval. Invalid rows block staging, and commit revalidates permissions, context and events atomically. Independent archives supplement history without replacing current live offers.
+The workspace includes collection health, permitted historical sources, tracked offers, import previews/audits and learned Shopify stores. Collection health shows stale/missing prices, failed offer checks, approved-price history gaps, scheduling and source cooldowns/budgets. Offer filters and independent source/offer pagination cover every recorded source without loading its full history. Refresh reads recorded state; it does not contact retailers, start jobs or confirm a worker is alive. Requests cancel on disconnect, failed reads show an error without substitute statistics, and all times use India time.
+
+Identity templates contain blank price/date/evidence fields. Imports require genuine exact-variant records and explicit source approval. Invalid rows block staging, and commit revalidates permissions, context and events atomically. Independent archives supplement history without replacing current live offers.
 
 Pause/resume controls affect future learned-store discovery while preserving existing permitted evidence. Resuming cannot restore revoked source permissions. See the API README and interactive API reference for schemas and operational limits.
 
@@ -91,7 +93,7 @@ Use a separate database and temporary quota overrides for a large suite. `PRICEL
 | `LookupPanel`, `Comparison`, `OfferCards` | User-driven lookup and cross-store comparison |
 | `HistoryChart`, `HistoryLedger`, `HistoryCoverage`, `PriceInsights` | Dated evidence, coverage and recorded statistics |
 | `TargetCard`, `WatchDialog`, `src/watchlist.ts` | Local targets and progress |
-| `HistoryImportAdmin`, `DiscoveryStores` | Authenticated owner controls |
+| `HistoryImportAdmin`, `DiscoveryStores`, `CollectionDashboard` | Authenticated owner controls and read-only collection health |
 | `src/offers.ts`, `src/chart.ts` | Ranking/filtering and chart transformations |
 | `src/*.test.ts`, `tests/browser/` | Unit and desktop/mobile regressions |
 

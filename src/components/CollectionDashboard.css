@@ -1,0 +1,115 @@
+.collection-dashboard {
+  min-width: 0;
+}
+.collection-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.collection-heading p {
+  margin-top: 0.5rem;
+}
+.collection-dashboard button {
+  cursor: pointer;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--line, #d9e2da);
+  background: white;
+  border-radius: 0.5rem;
+  color: inherit;
+}
+.collection-dashboard button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.collection-metrics {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+}
+.collection-metrics > div {
+  padding: 1rem;
+  background: #f2f6f2;
+  border-radius: 0.6rem;
+}
+.collection-metrics span {
+  display: block;
+  font-size: 0.8rem;
+}
+.collection-metrics strong {
+  display: block;
+  font-size: 1.8rem;
+  margin-top: 0.4rem;
+}
+.collection-note {
+  font-size: 0.85rem;
+  color: #526458;
+  line-height: 1.6;
+}
+.collection-filter {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 1.25rem 0;
+}
+.collection-filter select {
+  padding: 0.6rem;
+  border: 1px solid #d9e2da;
+  border-radius: 0.5rem;
+  background: white;
+}
+.collection-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.collection-dashboard table {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.85rem;
+}
+.collection-dashboard th,
+.collection-dashboard td {
+  padding: 0.85rem;
+  vertical-align: top;
+  border-bottom: 1px solid #e0e7e1;
+  overflow-wrap: anywhere;
+}
+.collection-dashboard th {
+  font-weight: 600;
+  background: #f7f9f6;
+}
+.collection-dashboard td:first-child {
+  max-width: 260px;
+}
+.collection-dashboard td span {
+  display: block;
+  color: #526458;
+  font-size: 0.78rem;
+  margin-top: 0.4rem;
+  line-height: 1.5;
+}
+.collection-dashboard h3 {
+  margin-top: 2rem;
+}
+.collection-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin: 1rem 0;
+  flex-wrap: wrap;
+}
+.collection-pagination span {
+  margin-right: auto;
+  font-size: 0.85rem;
+}
+@media (max-width: 700px) {
+  .collection-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

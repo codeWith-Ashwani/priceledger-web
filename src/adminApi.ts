@@ -59,6 +59,7 @@ export async function adminRequest<T>(
   token: string,
   path: string,
   body?: unknown,
+  signal?: AbortSignal,
 ): Promise<T> {
   const response = await fetch(`${base}/admin${path}`, {
     method: body === undefined ? "GET" : "POST",
@@ -68,6 +69,7 @@ export async function adminRequest<T>(
     },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     cache: "no-store",
+    signal,
   });
   const data = await response.json();
   if (!response.ok) {
@@ -82,7 +84,7 @@ export async function adminRequest<T>(
                   `${error.loc.join(".")}: ${error.msg}`,
               )
               .join("; ")
-          : "The import request could not complete.",
+          : "The owner request could not complete.",
     );
   }
   return data as T;
