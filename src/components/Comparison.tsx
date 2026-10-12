@@ -21,6 +21,7 @@ import HistoryLedger from "./HistoryLedger";
 import HistoryCoverage from "./HistoryCoverage";
 import OfferCards from "./OfferCards";
 import PriceInsights from "./PriceInsights";
+import LocalShopQuotes from "./LocalShopQuotes";
 
 const labels = {
   below_usual: "Below the usual price",
@@ -488,34 +489,7 @@ export default function Comparison({
                   retailers appear only after the exact variant is verified.
                 </div>
               </section>
-              <aside className="local-card">
-                <span className="eyebrow">Beyond the screen</span>
-                <h3>
-                  Your local market,
-                  <br />
-                  with real context.
-                </h3>
-                <p>
-                  Offline ranges will use dated shop quotes and verified
-                  evidence from your area.
-                </p>
-                <div className="local-unavailable">
-                  <Info size={15} />
-                  No local estimate for this variant yet.
-                </div>
-                <button className="text-button" onClick={showMethod}>
-                  Why evidence matters <ArrowUpRight size={14} />
-                </button>
-                <div className="local-illustration" aria-hidden="true">
-                  <div className="shop-roof" />
-                  <div className="shop-front">
-                    <span />
-                    <span />
-                    <span />
-                  </div>
-                  <div className="shop-base" />
-                </div>
-              </aside>
+              <LocalShopQuotes key={productId} productId={productId} />
             </div>
           </>
         )

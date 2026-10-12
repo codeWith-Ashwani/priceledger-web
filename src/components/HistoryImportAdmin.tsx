@@ -12,6 +12,7 @@ import { rupees } from "../format";
 import DiscoveryStores from "./DiscoveryStores";
 import CollectionDashboard from "./CollectionDashboard";
 import ReportQueue from "./ReportQueue";
+import OfflineQuoteAdmin from "./OfflineQuoteAdmin";
 
 function indiaDate(value?: string | null) {
   return value
@@ -285,6 +286,7 @@ export default function HistoryImportAdmin() {
             </div>
             <CollectionDashboard token={token} />
             <ReportQueue token={token} />
+            <OfflineQuoteAdmin token={token} />
             <DiscoveryStores token={token} />
             <section className="panel import-panel" aria-label="Import source">
               <h2>1. Choose the evidence source</h2>

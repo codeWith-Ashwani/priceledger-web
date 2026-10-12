@@ -26,6 +26,7 @@ Vite variables are public browser configuration. Never put admin tokens, databas
 5. Inspect the exact variant's chart, source toggles, observation ledger, coverage and historical assessment. Save a browser-local price target if useful.
 6. Use **Report an issue** on an offer card to flag an incorrect price/model, outdated quote, stock issue or broken store link. The form captures the displayed quote and comparison context for private owner review.
 7. Use **Add to product comparison** in the price overview, find another product, then open **Compare selected products** to inspect them side by side.
+8. Inspect **Your local market** for reviewed shop quotes for the selected exact variant. Choose city, condition and history period; ranges appear only when supported by current documented shop evidence.
 
 Same-model cards may differ in colour, RAM, storage or size; known differences and separate variant-history links remain visible. Exact-variant mode shows verified exact matches. Model alternatives do not enter the selected variant's graph or discount assessment. There is no three/four-store card cap. A store may supply multiple variant cards.
 
@@ -49,7 +50,17 @@ Missing shipping is never treated as free. Known subtotals can omit unconfirmed 
 
 History supports 30/90/365-day and all-recorded views. A single observation is a point; failed checks break chart continuity and missing days remain missing. Recorded statistics show store/date and observed-day count. The daily-best average weights observed India days equally. The separate assessment uses a historical daily-median reference and withholds a verdict when coverage is insufficient.
 
-History starts with genuine observations or reviewed historical imports. Complete launch history, future price predictions and offline estimates remain unavailable without the required evidence. No sample product, fake price or fabricated timeline is bundled with the application.
+History starts with genuine observations or reviewed historical imports. Complete launch history and future price predictions remain unavailable without the required evidence. Local shop ranges require actual reviewed quotes; no sample product, fake price or fabricated timeline is bundled with the application.
+
+## Local shop evidence
+
+The local-market panel reads dated owner-reviewed shop evidence for one exact variant and condition. Choose a recorded city and 30-day, 90-day, one-year or ten-year history. Paginated prices retain shop/area, source, observed time, validity and review time in IST. Chart dots show the current page's observations without interpolation; green dots are current and grey dots are historical. Changing city, condition, product or period cancels obsolete reads. Failed or mismatched responses show a retry control. The panel rechecks every minute while active and offers a manual refresh; the displayed check time describes when the range was calculated.
+
+A sampled range requires at least two documented shops with in-stock, unexpired evidence no older than the API's freshness setting (seven days by default). A single quote stays visible without a range; expired quotes remain historical. Newer stock reports and published-quote withdrawals prevent older available quotes appearing current. Ranges cover the documented sample and exclude delivery/travel costs. Online price rankings, targets and graphs stay separate. An empty panel means no suitable documented evidence exists; offline prices are never approximated from online prices.
+
+In `/?admin=imports`, connect using a server-configured admin token and open **Record and review local shop quotes**. Register the shop's public location and private permission reference, then find an existing tracked exact product. Supply its unconditional, tax-inclusive INR price, condition, reported availability, quote time, validity and private evidence reference; explicitly verify the exact variant before recording the private draft. Review the captured shop/product/evidence and enter a private note before publishing. Publication/withdrawal requires a confirmed server receipt, retains safe retry identities and appends a private audit. Reload a conflicting record while keeping the pending note. Withdrawal is final; corrected evidence needs a new draft.
+
+The owner panel loads on expansion, aborts pending requests on close/disconnect, and keeps credentials, drafts and notes out of browser storage. No anonymous submission or receipt-image upload is provided. Operator attestations are not independently verified; use genuine shop evidence and keep personal/payment details out of references. Source permission expiry can also be supplied through the API. A fresh installation contains no offline quotes.
 
 ## Saved targets
 
@@ -120,6 +131,7 @@ Use a separate database and temporary quota overrides for a large suite. `PRICEL
 | `HistoryImportAdmin`, `DiscoveryStores`, `CollectionDashboard` | Authenticated owner controls and read-only collection health |
 | `ReportDialog`, `ReportQueue`, `src/reports.ts` | Public issue intake, safe retries and private owner review |
 | `ProductCompare`, `src/productComparison.ts` | Visit-only product selection, independent prices and recorded variant comparison |
+| `LocalShopQuotes`, `OfflineQuoteAdmin`, `src/offline.ts` | City/condition history and sampled ranges, private drafts and reviewed shop publication |
 | `src/offers.ts`, `src/chart.ts` | Ranking/filtering and chart transformations |
 | `src/*.test.ts`, `tests/browser/` | Unit and desktop/mobile regressions |
 
