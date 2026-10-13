@@ -6,9 +6,30 @@ React interface for comparing real product prices in India and exploring their r
 
 **Release 1.0.0:** the existing feature scope is frozen. This release adds engineering safeguards and reproducible release packaging. Retailer coverage, historical depth and offline evidence retain the limitations below.
 
+## At a glance
+
+- Paste a public product link or search by brand/model, then inspect verified store cards with prices, images, stock, ratings when supplied and check times.
+- Compare every returned verified offer, filter exact/model variants, and see the lowest eligible price for the selected price basis.
+- Explore source-attributed charts, history rows, observed price statistics and coverage without filling missing dates.
+- Compare 2–4 selected products side by side and save price targets in this browser.
+- Inspect reviewed local-shop evidence by city and condition when genuine quotes exist.
+- Report offer issues and use the authenticated owner workspace for reviews, imports, source controls and collection health.
+
+**Navigate:** [Quick start](#quick-start) · [Product flow](#product-flow) · [Understanding prices](#understanding-prices) · [Owner workspace](#owner-workspace) · [Build and verification](#verify-and-build) · [Troubleshooting](#troubleshooting) · [Source layout](#source-layout)
+
 ## Quick start
 
 Requires Node.js **22.12+** and the migrated API running on port 8000.
+
+Run both repositories in separate terminals. First, from `priceledger-api`:
+
+```sh
+uv sync --locked
+uv run alembic upgrade head
+uv run uvicorn app.main:app --host 127.0.0.1 --port 8000 --no-access-log
+```
+
+This requires Python 3.12+ and `uv`; see the [API setup](https://github.com/codeWith-Ashwani/priceledger-api#quick-start). Keep the API terminal open. In a second terminal, from `priceledger-web`:
 
 ```sh
 npm ci
@@ -16,6 +37,8 @@ npm run dev
 ```
 
 Open `http://127.0.0.1:5173`. The default API base is `http://127.0.0.1:8000/api/v1`. To change it, set `VITE_API_BASE_URL` in an optional `.env`, using `.env.example` as reference, and restart Vite.
+
+The frontend does not start the API or collector. If the API is stopped, the page can load while product lookup fails. Run the backend collector separately for future scheduled observations; see the [collection instructions](https://github.com/codeWith-Ashwani/priceledger-api#collection-and-maintenance).
 
 Vite variables are public browser configuration. Never put admin tokens, database URLs or provider credentials in them. Configure the backend's CORS origins to match the frontend origin.
 
@@ -108,6 +131,14 @@ npm run build
 
 The production build writes ignored output to `dist/`. `npm run preview` serves that build locally; configure its origin in backend CORS when testing API access. Deploy frontend assets and the backend separately, with the correct public API base configured at build time.
 
+To preview the compiled build with the default backend's permitted frontend origin, stop the Vite development server and use:
+
+```sh
+npm run preview -- --port 5173 --strictPort
+```
+
+Keep the API on port 8000 running in its separate terminal. Preview is for local verification; use the packaged Nginx runtime for the container setup.
+
 The Docker build compiles with `VITE_API_BASE_URL=/api/v1`. Its non-root, read-only Nginx runtime serves hashed assets with immutable caching, keeps HTML/API responses uncached, adds browser security headers and proxies API calls on the same origin. Containers listen on 8080. See the API README's **Reproducible release setup** for the matching PostgreSQL/API/worker/web Compose stack, credentials, backups and rollback. Both repositories must be sibling directories at matching `v1.0.0` tags. This setup binds to localhost; public hosting requires its own TLS, trusted edge, rate-limit and monitoring configuration.
 
 API requests reject redirects, omit browser cookies and have deadlines covering headers and body decoding. Ordinary reads allow 20 seconds, owner imports 45 seconds, lookup 120 seconds and cross-store scans 180 seconds; owner dashboards and evidence panels retain their shorter managed deadlines. Leaving a lookup cancels it. A timed-out write may already have reached the server: refresh its state or use the existing receipt-based retry flow. Unexpected rendering failures show a reload control; saved browser targets remain intact.
@@ -131,6 +162,21 @@ The optional Fire-Boltt browser regression uses a comma-separated `PRICELEDGER_T
 Run the genuine same-product desktop/mobile regression serially with `npm run test:e2e -- tests/browser/apple-discovery.spec.ts --workers=1` for deterministic source checks. Concurrent scans can receive the API's intentional 409 lease-conflict response; separate controlled browser tests verify bounded automatic recovery.
 
 Use a separate database and temporary quota overrides for a large suite. `PRICELEDGER_TEST_API_URL` configures the direct test API base for competitor-feature contracts; it defaults to localhost port 8000 plus `/api/v1`. Keep that value consistent with Vite's API base. Genuine import checks additionally require `PRICELEDGER_QA_API_BASE`, a temporary `PRICELEDGER_QA_ADMIN_TOKEN` and an evidence file at `PRICELEDGER_QA_HISTORY_FILE`; without them, source-dependent import checks are skipped.
+
+## Troubleshooting
+
+| Symptom | Check or action |
+| --- | --- |
+| The page opens but no product loads / `Failed to fetch` | Confirm the backend is still running and open `http://127.0.0.1:8000/api/v1/ready`. A stopped API is independent of whether a retailer supports the product. |
+| The API is ready but the browser cannot reach it | Check `VITE_API_BASE_URL`, the API port and backend CORS origins. Restart Vite after changing its environment; rebuild compiled assets after changing build-time configuration. |
+| Only one store is displayed | Inspect the store diagnostics. Blocked pages, cooldowns, accessories and uncertain matches cannot supply verified alternatives. |
+| No old prices or only a single chart point | History begins with genuine recorded evidence. A first lookup cannot reveal a retailer's entire past timeline. |
+| No offline range appears | Genuine reviewed city/variant quotes are required. At least two eligible documented shops are needed for a sampled range. |
+| A displayed price differs at checkout | Check the observation time, stock, shipping and listed fees. Conditional bank, exchange and coupon offers are excluded from the unconditional ranking. |
+| The owner workspace rejects a token | Configure the token on the API server, then reconnect with that token. Never add it to a `VITE_` variable. |
+| Port 5173 is occupied | Stop the existing development/preview process, or use another port and add that origin to backend CORS. |
+
+For backend readiness, collection and database recovery, see [API troubleshooting](https://github.com/codeWith-Ashwani/priceledger-api#troubleshooting). Normal public operation does not require an owner token.
 
 ## Source layout
 
